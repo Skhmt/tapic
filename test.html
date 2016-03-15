@@ -1,0 +1,23 @@
+<html>
+<head>
+	<script src="twapi.js"></script>
+</head>
+<body>
+
+
+
+
+<script>
+	var clientid = ''; // public client id
+	var oauth = ''; // oauth without "oauth:", requires: chat_login, channel_editor
+	TWAPI.setup( clientid, oauth, function(username) {
+		TWAPI.runChat( username );
+	} );
+
+	document.addEventListener('rawChatMessage', function(e) {
+		console.info(e.detail);
+	} );
+
+</script>
+</body>
+</html>
