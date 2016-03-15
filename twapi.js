@@ -1,6 +1,9 @@
 // Twitch Websockets & API - TWAPI
 // Made by skhmt, 2016
 
+// http://youmightnotneedjquery.com/
+// http://closure-compiler.appspot.com/home
+
 (function( window ) {
 	function define_TWAPI() {
 
@@ -10,14 +13,6 @@
 		var _username = '';
 		var _channel = '';
 		var _ws;
-
-		TWAPI.getUsername = function() {
-			return _username;
-		}
-
-		TWAPI.getChannel = function() {
-			return _channel;
-		}
 
 		TWAPI.setup = function( clientid, oauth, callback ) {
 			if ( !clientid || !oauth ) {
@@ -83,7 +78,37 @@
 			}
 		}
 
+		TWAPI.getUsername = function() {
+			return _username;
+		}
 
+		TWAPI.getChannel = function() {
+			return _channel;
+		}
+
+		TWAPI.getOnline = function() {
+			if ( !_channel ) console.error( 'Not in a channel.' );
+			JSONP(
+				'https://api.twitch.tv/kraken/streams/' + _channel + '?api_version=3',
+				function( res ) {
+					return res.stream;
+				}
+			);
+		}
+
+		// hosts
+
+		// follows
+
+		// subsscribers
+
+		// stream statuts / game / change
+
+		// chat notices
+
+		// chat messages
+
+		// emoticon processing
 
 
 		return TWAPI;
