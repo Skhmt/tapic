@@ -4,20 +4,78 @@
 </head>
 <body>
 
+<div id="chat" style="overflow: auto; word-wrap: break-word; height: 800px; width: 1200px;">
+</div>
 
 
 
 <script>
 	var clientid = ''; // public client id
-	var oauth = ''; // oauth without "oauth:", requires: chat_login, channel_editor
-	TWAPI.setup( clientid, oauth, function(username) {
-		TWAPI.runChat( username );
+	var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor, , channel_commercial (if you want to run commercials)
+
+	// Do this first
+	TWAPI.setup( clientid, oauth, function( username ) {
+		// This is also required for a lot of things to work
+		TWAPI.runChat( username, function( channelname ) {
+			// Run test functions after joining a chat
+			setTimeout(tests, 4*1000);
+		} );
 	} );
 
-	document.addEventListener('rawChatMessage', function(e) {
+	// Log all raw chat messages to the console
+	document.addEventListener('twapiRaw', function( e ) {
 		console.info(e.detail);
 	} );
 
+	// Post all notices to #chat
+	document.addEventListener('twapiNotice', function( e ) {
+		document.getElementById('chat').innerHTML += e.detail + '<br>';
+	} );
+
+	// Post join notifications to #chat
+	document.addEventListener('twapiJoin', function( e ) {
+		document.getElementById('chat').innerHTML += e.detail + ' has joined.<br>';
+	} );
+
+	// Format, then post chat messages to #chat
+	document.addEventListener('twapiMsg', function( e ) {
+		var output = (e.detail.mod ? '<img src="http://chat-badges.s3.amazonaws.com/mod.png">' : '') +
+			(e.detail.sub  ?'<img src="' + TWAPI.getSubBadgeUrl() + '">' : '') +
+			(e.detail.turbo ? '<img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
+			(e.detail.streamer ? '<img src="http://chat-badges.s3.amazonaws.com/broadcaster.png">' : '') +
+			'&nbsp;<strong style="color: ' + e.detail.color + ';">' +
+			e.detail.from +
+			'</strong>&nbsp;' +
+			(e.detail.action ? '<span style="color: ' + e.detail.color + ';">' : ':&nbsp;&nbsp;') +
+			e.detail.text +
+			(e.detail.action ? '</span>' : '' ) +
+			'<br>';
+		document.getElementById('chat').innerHTML += output;
+	} );
+
+	function tests() {
+		TWAPI.sendChat( 'Hello world!' );
+		console.log( 'getUsername: ' + TWAPI.getUsername() );
+		console.log( 'getChannel: ' + TWAPI.getChannel() );
+		console.log( 'getGame: ' + TWAPI.getGame() );
+		console.log( 'getStatus: ' + TWAPI.getStatus() );
+		console.log( 'getFollowers: ' + TWAPI.getFollowers() );
+		console.log( 'getViews: ' + TWAPI.getViews() );
+
+		console.log( 'isPartner: ' + TWAPI.isPartner() );
+		console.log( 'getSubBadgeUrl: ' + TWAPI.getSubBadgeUrl() );
+		// TWAPI.runCommercial('30');
+
+		console.log( 'isOnline: ' + TWAPI.isOnline() );
+		console.log( 'getCurrentViewers: ' + TWAPI.getCurrentViewers() );
+		console.log( 'getFps: ' + TWAPI.getFps() );
+		console.log( 'getVideoHeight: ' + TWAPI.getVideoHeight() );
+		console.log( 'getDelay: ' + TWAPI.getDelay() );
+
+		// TWAPI.setStatusGame('Making a Twitch Javascript API #programming', 'Creative');
+		// TWAPI.closeChat();
+	}
 </script>
+
 </body>
 </html>
