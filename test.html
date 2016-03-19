@@ -4,37 +4,51 @@
 </head>
 <body>
 
-<div id="chat" style="overflow: auto; word-wrap: break-word; height: 800px; width: 1200px;">
+<div id="chat" style="overflow: hidden; word-wrap: break-word; height: 800px; width: 1200px;">
 </div>
 
 
 
 <script>
 	var clientid = ''; // public client id
-	var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor, , channel_commercial (if you want to run commercials)
+	var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor, channel_commercial (if you want to run commercials)
 
 	// Do this first
 	TWAPI.setup( clientid, oauth, function( username ) {
 		// This is also required for a lot of things to work
-		TWAPI.runChat( username, function( channelname ) {
+		TWAPI.runChat( 'ultra', function( channelname ) {
 			// Run test functions after joining a chat
 			setTimeout(tests, 4*1000);
 		} );
 	} );
 
-	// Log all raw chat messages to the console
+	// EventListeners
 	document.addEventListener('twapiRaw', function( e ) {
-		console.info(e.detail);
+		// console.info(e.detail);
 	} );
 
-	// Post all notices to #chat
 	document.addEventListener('twapiNotice', function( e ) {
 		document.getElementById('chat').innerHTML += e.detail + '<br>';
 	} );
 
-	// Post join notifications to #chat
 	document.addEventListener('twapiJoin', function( e ) {
 		document.getElementById('chat').innerHTML += e.detail + ' has joined.<br>';
+	} );
+
+	document.addEventListener('twapiHost', function( e ) {
+		document.getElementById('chat').innerHTML += e.detail + ' is hosting you.<br>';
+	} );
+
+	document.addEventListener('twapiSub', function( e ) {
+		document.getElementById('chat').innerHTML += e.detail + ' has just subscribed!<br>';
+	} );
+
+	document.addEventListener('twapiSubMonths', function( e ) {
+		document.getElementById('chat').innerHTML += e.detail.name + ' has resubbed ' + e.detail.months + ' times!<br>';
+	} );
+
+	document.addEventListener('twapiSubsAway', function( e ) {
+		document.getElementById('chat').innerHTML += e.detail + ' users have subbed since you have been offline.<br>';
 	} );
 
 	// Format, then post chat messages to #chat
@@ -50,11 +64,12 @@
 			e.detail.text +
 			(e.detail.action ? '</span>' : '' ) +
 			'<br>';
-		document.getElementById('chat').innerHTML += output;
+		document.getElementById('chat').innerHTML = output + document.getElementById('chat').innerHTML;
 	} );
 
+	// Utility functions
 	function tests() {
-		TWAPI.sendChat( 'Hello world!' );
+		// TWAPI.sendChat( 'Hello world!' );
 		console.log( 'getUsername: ' + TWAPI.getUsername() );
 		console.log( 'getChannel: ' + TWAPI.getChannel() );
 		console.log( 'getGame: ' + TWAPI.getGame() );
