@@ -363,7 +363,7 @@
 				'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3',
 				function( res ) {
 					if ( res.subscriber != null ) {
-						subBadgeUrl = res.subscriber.image;
+						_subBadgeUrl = res.subscriber.image;
 					}
 				}
 			);
