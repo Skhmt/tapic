@@ -1,8 +1,11 @@
-// Twitch Websockets & API - TWAPI
+// Twitch Websockets & API in javascript - TWAPI.js
 // Made by skhmt, 2016
 
-// http://youmightnotneedjquery.com/
-// http://closure-compiler.appspot.com/home
+// compile at: http://closure-compiler.appspot.com/
+
+// follows & list of current viewers
+// emoticon processing
+
 
 (function( window ) {
 	function define_TWAPI() {
@@ -209,22 +212,19 @@
 			req.send();
 		}
 
-		// hosts
-
-		// follows
-
-		// subsscribers
-
-		// emoticon processing
+		// private functions below
 
 		function _parseMessage( text ) {
 			EV( 'twapiRaw', text);
 
 			var textarray = text.split(' ');
-			if ( textarray[2] === 'PRIVMSG' ) {
+			if ( textarray[2] === 'PRIVMSG' ) { // regular message
 				var command = textarray[0];
 				textarray.splice( 0, 1 );
 				_msgPriv( command, textarray );
+			}
+			else if ( textarray[1] === 'PRIVMSG' ) { // host notification
+				EV( 'twapiHost', textarray[3].substring(1) );
 			}
 			else if ( textarray[2] === 'NOTICE' ) {
 				textarray.splice( 0, 4 );
@@ -287,16 +287,33 @@
 			}
 			var output = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-			EV( 'twapiMsg',  {
-				"from": from,
-				"color": color,
-				"mod": mod,
-				"sub": subscriber,
-				"turbo": turbo,
-				"streamer": ( from.toLowerCase() === _channel.toLowerCase() ),
-				"action": action,
-				"text": output
-			} );
+			if ( 'from' === 'twitchnotify' ) { // Sub notification
+				var notifyText = text.split(' ');
+				if ( notifyText[1] === 'just' ) { // "[name] just subscribed!"
+					EV( 'twapiSub', notifyText[0] );
+				}
+				else if ( notifyText[1] === 'subscribed' ) { // "[name] subscribed for 13 months in a row!"
+					EV( 'twapiSubMonths', {
+						"name": notifyText[0],
+						"months": notifyText[3]
+					} );
+				}
+				else { // "[number] viewers resubscribed while you were away!"
+					EV( 'twapiSubsAway', notifyText[0] );
+				}
+			}
+			else {
+				EV( 'twapiMsg',  {
+					"from": from,
+					"color": color,
+					"mod": mod,
+					"sub": subscriber,
+					"turbo": turbo,
+					"streamer": ( from.toLowerCase() === _channel.toLowerCase() ),
+					"action": action,
+					"text": output
+				} );
+			}
 		}
 
 		function _pingAPI() {
