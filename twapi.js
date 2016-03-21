@@ -292,7 +292,7 @@
 			}
 
 			else {
-				if ( text ) console.info( text );
+				// if ( text ) console.info( text );
 			}
 		}
 
