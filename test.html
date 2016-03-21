@@ -16,7 +16,7 @@
 	// Do this first
 	TWAPI.setup( clientid, oauth, function( username ) {
 		// This is also required for a lot of things to work
-		TWAPI.runChat( 'skhmt', function( channelname ) {
+		TWAPI.runChat( username, function( channelname ) {
 			// Run test functions after joining a chat
 			setTimeout(tests, 4*1000);
 		} );
