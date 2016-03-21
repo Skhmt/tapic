@@ -16,7 +16,7 @@
 	// Do this first
 	TWAPI.setup( clientid, oauth, function( username ) {
 		// This is also required for a lot of things to work
-		TWAPI.runChat( 'ultra', function( channelname ) {
+		TWAPI.runChat( 'skhmt', function( channelname ) {
 			// Run test functions after joining a chat
 			setTimeout(tests, 4*1000);
 		} );
@@ -28,30 +28,54 @@
 	} );
 
 	document.addEventListener('twapiNotice', function( e ) {
-		document.getElementById('chat').innerHTML += e.detail + '<br>';
+		writeChat( e.detail );
 	} );
 
 	document.addEventListener('twapiJoin', function( e ) {
-		document.getElementById('chat').innerHTML += e.detail + ' has joined.<br>';
+		writeChat( e.detail + ' has joined.' );
+	} );
+
+	document.addEventListener('twapiPart', function( e ) {
+		writeChat( e.detail + ' has left the channel.' );
+	} );
+
+	document.addEventListener('twapiClear', function( e ) {
+		// apparently even non-mods can do this
+		writeChat( e.detail + ' has cleared the chat.' );
 	} );
 
 	document.addEventListener('twapiHost', function( e ) {
-		document.getElementById('chat').innerHTML += e.detail + ' is hosting you.<br>';
+		writeChat( e.detail + ' is hosting you.' );
+	} );
+
+	document.addEventListener('twapiFollow', function( e ) {
+		writeChat( e.detail + ' has followed you.' );
 	} );
 
 	document.addEventListener('twapiSub', function( e ) {
-		document.getElementById('chat').innerHTML += e.detail + ' has just subscribed!<br>';
+		writeChat( e.detail + ' has just subscribed!' );
 	} );
 
 	document.addEventListener('twapiSubMonths', function( e ) {
-		document.getElementById('chat').innerHTML += e.detail.name + ' has resubbed ' + e.detail.months + ' times!<br>';
+		writeChat( e.detail.name + ' has resubbed ' + e.detail.months + ' times!' );
 	} );
 
 	document.addEventListener('twapiSubsAway', function( e ) {
-		document.getElementById('chat').innerHTML += e.detail + ' users have subbed since you have been offline.<br>';
+		writeChat( e.detail + ' users have subbed since you have been offline.' );
 	} );
 
-	// Format, then post chat messages to #chat
+	document.addEventListener('twapiRoomstate', function( e ) {
+		var output = 'Roomstate options: ';
+		if ( e.detail.lang ) output += ' lang:' + e.detail.lang;
+		if ( e.detail.r9k ) output += ' r9k';
+		if ( e.detail.slow ) output += ' slow';
+		if ( e.detail.subs_only ) output += ' subs-only';
+		if ( !e.detail.lang && !e.detail.r9k && !e.detail.slow && !e.detail.subs_only ) {
+			output += ' none.';
+		}
+		writeChat( output );
+	} );
+
 	document.addEventListener('twapiMsg', function( e ) {
 		var output = (e.detail.mod ? '<img src="http://chat-badges.s3.amazonaws.com/mod.png">' : '') +
 			(e.detail.sub  ?'<img src="' + TWAPI.getSubBadgeUrl() + '">' : '') +
@@ -62,9 +86,8 @@
 			'</strong>&nbsp;' +
 			(e.detail.action ? '<span style="color: ' + e.detail.color + ';">' : ':&nbsp;&nbsp;') +
 			e.detail.text +
-			(e.detail.action ? '</span>' : '' ) +
-			'<br>';
-		document.getElementById('chat').innerHTML = output + document.getElementById('chat').innerHTML;
+			(e.detail.action ? '</span>' : '' );
+		writeChat( output );
 	} );
 
 	// Utility functions
@@ -74,21 +97,32 @@
 		console.log( 'getChannel: ' + TWAPI.getChannel() );
 		console.log( 'getGame: ' + TWAPI.getGame() );
 		console.log( 'getStatus: ' + TWAPI.getStatus() );
-		console.log( 'getFollowers: ' + TWAPI.getFollowers() );
-		console.log( 'getViews: ' + TWAPI.getViews() );
+		console.log( 'getFollowerCount: ' + TWAPI.getFollowerCount() );
+		console.log( 'getTotalViewCount: ' + TWAPI.getTotalViewCount() );
+		console.log( 'getCurrentViewCount: ' + TWAPI.getCurrentViewCount() );
+
+		TWAPI.isFollowing('skhmt', 'letsmakefriends', function( res ) {
+			if ( res.isFollowing ) console.log( 'Following since: ' + res.dateFollowed );
+			else console.log( 'Is not following.' );
+		} );
 
 		console.log( 'isPartner: ' + TWAPI.isPartner() );
 		console.log( 'getSubBadgeUrl: ' + TWAPI.getSubBadgeUrl() );
 		// TWAPI.runCommercial('30');
 
 		console.log( 'isOnline: ' + TWAPI.isOnline() );
-		console.log( 'getCurrentViewers: ' + TWAPI.getCurrentViewers() );
 		console.log( 'getFps: ' + TWAPI.getFps() );
 		console.log( 'getVideoHeight: ' + TWAPI.getVideoHeight() );
 		console.log( 'getDelay: ' + TWAPI.getDelay() );
+		console.log( 'getChatters: ' + JSON.stringify( TWAPI.getChatters() ) );
 
 		// TWAPI.setStatusGame('Making a Twitch Javascript API #programming', 'Creative');
 		// TWAPI.closeChat();
+	}
+
+	function writeChat(msg) {
+		document.getElementById('chat').innerHTML += msg + '<br>';
+		document.getElementById('chat').scrollTop = Number.MAX_SAFE_INTEGER;
 	}
 </script>
 
