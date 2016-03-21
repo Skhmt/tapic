@@ -40,8 +40,7 @@
 	} );
 
 	document.addEventListener('twapiClear', function( e ) {
-		// apparently even non-mods can do this
-		writeChat( e.detail + ' has cleared the chat.' );
+		writeChat( e.detail + ' has been cleared (aka purged/timedout).' );
 	} );
 
 	document.addEventListener('twapiHost', function( e ) {
@@ -87,6 +86,8 @@
 			(e.detail.action ? '<span style="color: ' + e.detail.color + ';">' : ':&nbsp;&nbsp;') +
 			e.detail.text +
 			(e.detail.action ? '</span>' : '' );
+
+			// e.detail.emotes is a string of emote sets, e.g. '0,33,50,237,793,2126,3517,4578,5569,9400,10337,12239'
 		writeChat( output );
 	} );
 
