@@ -3,9 +3,6 @@
 
 // compile at: http://closure-compiler.appspot.com/
 
-// follows & list of current viewers
-// emoticon processing
-
 
 (function( window ) {
 	function define_TWAPI() {
@@ -19,14 +16,16 @@
 		var _online = false;
 		var _game = '';
 		var _status = '';
-		var _followers = '';
-		var _views = '';
+		var _followerCount = '';
+		var _totalViewCount = '';
 		var _partner = '';
-		var _currentViewers = '';
+		var _currentViewCount = '';
 		var _fps = '';
 		var _videoHeight = '';
 		var _delay = '';
 		var _subBadgeUrl = '';
+		var _chatters = {};
+		var _followers = [];
 
 		TWAPI.setup = function( clientid, oauth, callback ) {
 			if ( !clientid || !oauth ) {
@@ -50,10 +49,12 @@
 				console.error( 'TWAPI not set up, cannot run chat.' );
 			}
 
-			_channel = channel;
+			_channel = channel.toLowerCase();
+			_chatters = {};
+			_followers = [];
 
 			JSONP(
-				'https://api.twitch.tv/api/channels/' + channel + '/chat_properties?api_version=3',
+				'https://api.twitch.tv/api/channels/' + _channel + '/chat_properties?api_version=3',
 				function( res ) {
 					var server = res.web_socket_servers[ Math.floor( Math.random() * res.web_socket_servers.length ) ];
 					server = 'ws://' + server;
@@ -110,58 +111,79 @@
 		}
 
 		TWAPI.isOnline = function( callback ) {
-			if ( !_channel ) console.error( 'Not in a channel.' );
+			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _online;
 		}
 
 		TWAPI.getStatus = function() {
-			if ( !_channel ) console.error( 'Not in a channel.' );
+			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _status;
 		}
 
 		TWAPI.getGame = function() {
-			if ( !_channel ) console.error( 'Not in a channel.' );
+			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _game;
 		}
 
-		TWAPI.getFollowers = function() {
-			if ( !_channel ) console.error( 'Not in a channel.' );
-			return _followers;
+		TWAPI.getFollowerCount = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _followerCount;
 		}
 
-		TWAPI.getViews = function() {
-			if ( !_channel ) console.error( 'Not in a channel.' );
-			return _views;
+		TWAPI.getTotalViewCount = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _totalViewCount;
 		}
 
 		TWAPI.isPartner = function() {
-			if ( !_channel ) console.error( 'Not in a channel.' );
+			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _partner;
 		}
 
-		TWAPI.getCurrentViewers = function() {
-			if ( !_online ) console.error( 'Stream not online.' );
-			return _currentViewers;
+		TWAPI.getCurrentViewCount = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _currentViewCount;
 		}
 
 		TWAPI.getFps = function() {
-			if ( !_online ) console.error( 'Stream not online.' );
+			if ( !_online ) return console.error( 'Stream not online.' );
 			return _fps;
 		}
 
 		TWAPI.getVideoHeight = function() {
-			if ( !_online ) console.error( 'Stream not online.' );
+			if ( !_online ) return console.error( 'Stream not online.' );
 			return _videoHeight;
 		}
 
 		TWAPI.getDelay = function() {
-			if ( !_online ) console.error( 'Stream not online.' );
+			if ( !_online ) return console.error( 'Stream not online.' );
 			return _delay;
 		}
 
 		TWAPI.getSubBadgeUrl = function() {
-			if ( !_channel ) console.error( 'Not in a channel.' );
+			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _subBadgeUrl;
+		}
+
+		TWAPI.getChatters = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _chatters;
+		}
+
+		TWAPI.isFollowing = function( user, channel, callback ) {
+			// https://api.twitch.tv/kraken/users/skhmt/follows/channels/food
+			JSONP(
+				'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel + '?api_version=3',
+				function( res ) {
+					if ( res.error ) callback( {
+						"isFollowing": false
+					} );
+					else callback( {
+						"isFollowing": true,
+						"dateFollowed": ( new Date(res.created_at).toLocaleString() )
+					} );
+				}
+			);
 		}
 
 		TWAPI.runCommercial = function( length ) {
@@ -216,25 +238,61 @@
 
 		function _parseMessage( text ) {
 			EV( 'twapiRaw', text);
-
 			var textarray = text.split(' ');
+
 			if ( textarray[2] === 'PRIVMSG' ) { // regular message
 				var command = textarray[0];
 				textarray.splice( 0, 1 );
 				_msgPriv( command, textarray );
 			}
+
 			else if ( textarray[1] === 'PRIVMSG' ) { // host notification
 				EV( 'twapiHost', textarray[3].substring(1) );
 			}
+
 			else if ( textarray[2] === 'NOTICE' ) {
 				textarray.splice( 0, 4 );
 				var output = textarray.join(' ').substring(1);
 				EV( 'twapiNotice', output );
-			} else if ( textarray[1] === 'JOIN' ) {
+			}
+
+			else if ( textarray[1] === 'JOIN' ) {
 				var joinname = textarray[0].split('!')[0].substring(1);
 				EV( 'twapiJoin', joinname );
-			} else {
-				console.log( text );
+			}
+
+			else if ( textarray[1] === 'PART' ) {
+				// :mudb3rt!mudb3rt@mudb3rt.tmi.twitch.tv PART #ultra
+				var partname = textarray[0].split('!')[0].substring(1);
+				EV( 'twapiPart', partname );
+			}
+
+			else if ( textarray[2] === 'ROOMSTATE' ) {
+				// @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #ultra
+				var statearray = textarray[0].split(';');
+				var lang, r9k, slow, subs_only;
+				for (var i in statearray) {
+					var stateparam = i.split('=');
+					if ( stateparam[0] === '@broadcaster-lang' ) lang = stateparam[1];
+					else if ( stateparam[0] === 'r9k' ) r9k = stateparam[1];
+					else if ( stateparam[0] === 'slow' ) slow = stateparam[1];
+					else if ( stateparam[0] === 'subs-only' ) subs_only = stateparam[1];
+				}
+				EV( 'twapiRoomstate', {
+					"lang": lang,
+					"r9k": r9k,
+					"slow": slow,
+					"subs_only": subs_only
+				} );
+			}
+
+			else if ( textarray[1] === 'CLEARCHAT' ) {
+				var clearname = textarray[3].substring(1);
+				EV( 'twapiClear', clearname );
+			}
+
+			else {
+				if ( text ) console.info( text );
 			}
 		}
 
@@ -323,7 +381,7 @@
 				function( res ) {
 					if ( res.stream ) {
 						_online = true;
-						_currentViewers = res.stream.viewers;
+						_currentViewCount = res.stream.viewers;
 						_fps = res.stream.average_fps;
 						_videoHeight = res.stream.video_height;
 						_delay = res.stream.delay;
@@ -339,17 +397,45 @@
 				function( res ) {
 					_game = res.game;
 					_status = res.status;
-					_followers = res.followers;
-					_views = res.views;
+					_followerCount = res.followers;
+					_totalViewCount = res.views;
 					_partner = res.partner;
 				}
 			);
 
 			JSONP(
-				'https://api.twitch.tv/kraken/channels/' + _channel + '/follows?client_id=' + _clientid + '&api_version=3',
+				'https://api.twitch.tv/kraken/channels/' + _channel + '/follows?client_id=' + _clientid + '&api_version=3&limit=100',
 				function( res ) {
 					// Do something about updating recent followers
 					// https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
+					if ( !res.follows ) return;
+
+					var firstUpdate = true;
+					if ( _followers.length > 0 ) firstUpdate = false;
+
+					for ( var i = 0; i < res.follows.length; i++ ) {
+						var tempFollower = res.follows[i].user.display_name;
+						if ( _followers.indexOf( tempFollower ) === -1 ) { // if user isn't in _followers
+							if ( !firstUpdate ) EV( 'twapiFollow', tempFollower ); // if it's not the first update, post new follower
+							_followers.push( tempFollower ); // add the user to the follower list
+						}
+		            }
+				}
+			);
+
+			JSONP(
+				'https://tmi.twitch.tv/group/user/' + _channel + '/chatters?client_id=' + _clientid + '&api_version=3',
+				function( res ) {
+					if ( !res.data.chatters ) {
+						return console.log( 'No response for user list.' );
+					}
+					_currentViewCount = res.data.chatter_count;
+					// .slice(); is to set by value rather than reference
+					_chatters.moderators = res.data.chatters.moderators.slice();
+					_chatters.staff = res.data.chatters.staff.slice();
+					_chatters.admins = res.data.chatters.admins.slice();
+					_chatters.global_mods = res.data.chatters.global_mods.slice();
+					_chatters.viewers = res.data.chatters.viewers.slice();
 				}
 			);
 
