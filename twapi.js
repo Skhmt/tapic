@@ -328,7 +328,7 @@
 				else if ( tempParamName === 'turbo' && tempParamValue == '1' ) {
 					turbo = true;
 				}
-				else if ( tempParamName === 'emote-sets' && tempParamValue != '' ) {
+				else if ( tempParamName === 'emotes' && tempParamValue != '' ) {
 					emotes = tempParamValue;
 				}
 			}
