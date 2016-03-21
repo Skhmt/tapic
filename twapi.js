@@ -269,11 +269,11 @@
 
 			else if ( textarray[2] === 'ROOMSTATE' ) {
 				// @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #ultra
-				var statearray = textarray[0].split(';');
+				var statearray = textarray[0].substring(1).split(';');
 				var lang, r9k, slow, subs_only;
 				for (var i in statearray) {
 					var stateparam = i.split('=');
-					if ( stateparam[0] === '@broadcaster-lang' ) lang = stateparam[1];
+					if ( stateparam[0] === 'broadcaster-lang' ) lang = stateparam[1];
 					else if ( stateparam[0] === 'r9k' ) r9k = stateparam[1];
 					else if ( stateparam[0] === 'slow' ) slow = stateparam[1];
 					else if ( stateparam[0] === 'subs-only' ) subs_only = stateparam[1];
@@ -303,11 +303,12 @@
 			var subscriber = false;
 			var turbo = false;
 			var from = '';
+			var emotes = '';
 			for ( var i = 0; i < commands.length; i++ ) {
 				commands[i] = commands[i].split( '=' );
 				var tempParamName = commands[i][0];
 				var tempParamValue = commands[i][1];
-				if (tempParamName == 'display-name') {
+				if ( tempParamName === 'display-name' ) {
 					if (tempParamValue === '') { // some people don't have a display-name, so getting it from somewhere else as a backup
 						var tempArgs = args[0].split( '!' );
 						from = tempArgs[0];
@@ -315,17 +316,20 @@
 						from = tempParamValue;
 					}
 				}
-				else if ( tempParamName == '@color' && tempParamValue != '' ) {
+				else if ( tempParamName === '@color' && tempParamValue != '' ) {
 					color = tempParamValue;
 				}
-				else if ( tempParamName == 'mod' && tempParamValue == '1' ) {
+				else if ( tempParamName === 'mod' && tempParamValue == '1' ) {
 					mod = true;
 				}
-				else if ( tempParamName == 'subscriber' && tempParamValue == '1' ) {
+				else if ( tempParamName === 'subscriber' && tempParamValue == '1' ) {
 					subscriber = true;
 				}
-				else if ( tempParamName == 'turbo' && tempParamValue == '1' ) {
+				else if ( tempParamName === 'turbo' && tempParamValue == '1' ) {
 					turbo = true;
+				}
+				else if ( tempParamName === 'emote-sets' && tempParamValue != '' ) {
+					emotes = tempParamValue;
 				}
 			}
 
@@ -369,7 +373,8 @@
 					"turbo": turbo,
 					"streamer": ( from.toLowerCase() === _channel.toLowerCase() ),
 					"action": action,
-					"text": output
+					"text": output,
+					"emotes": emotes
 				} );
 			}
 		}
