@@ -1,5 +1,6 @@
 # twapi.js
-Twitch Websockets &amp; API.
+Twitch Websockets &amp; API javascript framework.
+
 This contains more or less everything you'd need from the Twitch API accessed via function calls, with data refreshed every minute.
 This also has twitch chat via websockets, which are accessed via eventListeners.
 
