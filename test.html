@@ -87,7 +87,8 @@
 			e.detail.text +
 			(e.detail.action ? '</span>' : '' );
 
-			// e.detail.emotes is a string of emote sets, e.g. '0,33,50,237,793,2126,3517,4578,5569,9400,10337,12239'
+			// e.detail.emotes is the emotes, e.g. '25:0-4,12-16/1902:6-10'
+			// https://github.com/justintv/Twitch-API/blob/master/IRC.md#privmsg
 		writeChat( output );
 	} );
 
