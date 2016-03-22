@@ -26,6 +26,10 @@
 		var _subBadgeUrl = '';
 		var _chatters = {};
 		var _followers = [];
+		var _createdAt = '';
+		var _logo = '';
+		var _videoBanner = '';
+		var _profileBanner = '';
 
 		TWAPI.setup = function( clientid, oauth, callback ) {
 			if ( !clientid || !oauth ) {
@@ -168,6 +172,26 @@
 		TWAPI.getChatters = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _chatters;
+		}
+
+		TWAPI.getCreatedAt = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _createdAt;
+		}
+
+		TWAPI.getLogo = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _logo;
+		}
+
+		TWAPI.getVideoBanner = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _videoBanner;
+		}
+
+		TWAPI.getProfileBanner = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _profileBanner;
 		}
 
 		TWAPI.isFollowing = function( user, channel, callback ) {
@@ -405,6 +429,10 @@
 					_followerCount = res.followers;
 					_totalViewCount = res.views;
 					_partner = res.partner;
+					_createdAt = res.created_at;
+					_logo = res.logo;
+					_videoBanner = res.video_banner; // offline banner
+					_profileBanner = res.profile_banner;
 				}
 			);
 
