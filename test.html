@@ -16,7 +16,7 @@
 	// Do this first
 	TWAPI.setup( clientid, oauth, function( username ) {
 		// This is also required for a lot of things to work
-		TWAPI.runChat( username, function( channelname ) {
+		TWAPI.runChat( 'ultra', function( channelname ) {
 			// Run test functions after joining a chat
 			setTimeout(tests, 4*1000);
 		} );
@@ -94,7 +94,7 @@
 
 	// Utility functions
 	function tests() {
-		// TWAPI.sendChat( 'Hello world!' );
+		TWAPI.sendChat( 'Hello world!' );
 		console.log( 'getUsername: ' + TWAPI.getUsername() );
 		console.log( 'getChannel: ' + TWAPI.getChannel() );
 		console.log( 'getGame: ' + TWAPI.getGame() );
@@ -102,6 +102,10 @@
 		console.log( 'getFollowerCount: ' + TWAPI.getFollowerCount() );
 		console.log( 'getTotalViewCount: ' + TWAPI.getTotalViewCount() );
 		console.log( 'getCurrentViewCount: ' + TWAPI.getCurrentViewCount() );
+		console.log( 'getCreatedAt: ' + TWAPI.getCreatedAt() );
+		console.log( 'getLogo: ' + TWAPI.getLogo() );
+		console.log( 'getVideoBanner: ' + TWAPI.getVideoBanner() );
+		console.log( 'getProfileBanner: ' + TWAPI.getProfileBanner() );
 
 		TWAPI.isFollowing('skhmt', 'letsmakefriends', function( res ) {
 			if ( res.isFollowing ) console.log( 'Following since: ' + res.dateFollowed );
@@ -118,7 +122,7 @@
 		console.log( 'getDelay: ' + TWAPI.getDelay() );
 		console.log( 'getChatters: ' + JSON.stringify( TWAPI.getChatters() ) );
 
-		// TWAPI.setStatusGame('Making a Twitch Javascript API #programming', 'Creative');
+		// TWAPI.setStatusGame('Making a Twitch Javascript Framework #programming', 'Creative');
 		// TWAPI.closeChat();
 	}
 
