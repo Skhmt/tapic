@@ -16,7 +16,8 @@
 	// Do this first
 	TWAPI.setup( clientid, oauth, function( username ) {
 		// This is also required for a lot of things to work
-		TWAPI.runChat( 'skhmt', function( channelname ) {
+		var channel = username;
+		TWAPI.runChat( channel, function() {
 			// Run test functions after joining a chat
 			setTimeout(tests, 4*1000);
 		} );
@@ -24,7 +25,15 @@
 
 	// EventListeners
 	document.addEventListener('twapiRaw', function( e ) {
-		// console.info(e.detail);
+		// You really don't NEED to see raw messages. But you can if you want.
+		// You can also manually parse the raw messages if you don't trust TWAPI.js
+		// writeChat( '* ' + e.detail );
+	} );
+
+	document.addEventListener('twapiRawGroup', function( e ) {
+		// You really don't NEED to see raw messages from the group server. But you can if you want.
+		// You can also manually parse the raw messages from the group server if you don't trust TWAPI.js
+		// writeChat( '+ ' + e.detail );
 	} );
 
 	document.addEventListener('twapiNotice', function( e ) {
