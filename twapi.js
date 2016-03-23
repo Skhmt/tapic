@@ -320,7 +320,7 @@
 
 			var textarray = text.split(' ');
 			if ( textarray[2] === 'NOTICE' ) {
-				EV( 'twapiGroupNotice', textarray.slice(4).join(' ').substring(1) );
+				EV( 'twapiNoticeGroup', textarray.slice(4).join(' ').substring(1) );
 			}
 			else if ( textarray[2] === 'WHISPER' ) {
 				var color = '#d2691e';
