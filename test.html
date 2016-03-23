@@ -16,7 +16,7 @@
 	// Do this first
 	TWAPI.setup( clientid, oauth, function( username ) {
 		// This is also required for a lot of things to work
-		TWAPI.runChat( 'ultra', function( channelname ) {
+		TWAPI.runChat( 'skhmt', function( channelname ) {
 			// Run test functions after joining a chat
 			setTimeout(tests, 4*1000);
 		} );
@@ -80,7 +80,7 @@
 			(e.detail.sub  ?'<img src="' + TWAPI.getSubBadgeUrl() + '">' : '') +
 			(e.detail.turbo ? '<img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
 			(e.detail.streamer ? '<img src="http://chat-badges.s3.amazonaws.com/broadcaster.png">' : '') +
-			'&nbsp;<strong style="color: ' + e.detail.color + ';">' +
+			'<strong style="color: ' + e.detail.color + ';">' +
 			e.detail.from +
 			'</strong>&nbsp;' +
 			(e.detail.action ? '<span style="color: ' + e.detail.color + ';">' : ':&nbsp;&nbsp;') +
@@ -92,9 +92,27 @@
 		writeChat( output );
 	} );
 
+	document.addEventListener('twapiGroupNotice', function( e ) {
+		writeChat( e.detail );
+	} );
+
+	document.addEventListener('twapiWhisper', function( e ) {
+		var output = (e.detail.turbo ? '<img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
+			'<strong style="color: ' + e.detail.color + ';">' +
+			e.detail.from +
+			'</strong>' +
+			' &gt; ' +
+			'<strong>' + e.detail.to + '</strong> : ' +
+			e.detail.text;
+		// e.detail.message_id & e.detail.thread_id & e.detail.user_id contain their respective ids
+		// When using whispers for a bot, be sure to whitelist it: https://discuss.dev.twitch.tv/t/are-your-whispers-not-going-through-for-your-bot/5183/3
+		writeChat( output );
+	} );
+
 	// Utility functions
 	function tests() {
-		TWAPI.sendChat( 'Hello world!' );
+		// TWAPI.sendChat( 'Hello world!' );
+		// TWAPI.sendWhisper( 'littlecatbot', 'Hello whisper!' );
 		console.log( 'getUsername: ' + TWAPI.getUsername() );
 		console.log( 'getChannel: ' + TWAPI.getChannel() );
 		console.log( 'getGame: ' + TWAPI.getGame() );
@@ -107,9 +125,11 @@
 		console.log( 'getVideoBanner: ' + TWAPI.getVideoBanner() );
 		console.log( 'getProfileBanner: ' + TWAPI.getProfileBanner() );
 
-		TWAPI.isFollowing('skhmt', 'letsmakefriends', function( res ) {
-			if ( res.isFollowing ) console.log( 'Following since: ' + res.dateFollowed );
-			else console.log( 'Is not following.' );
+		var folUser = 'skhmt';
+		var folTarget = 'letsmakefriends';
+		TWAPI.isFollowing( folUser, folTarget, function( res ) {
+			if ( res.isFollowing ) console.log( folUser + ' has been following ' + folTarget + ' since: ' + res.dateFollowed );
+			else console.log( folUser + ' is not following ' + folTarget + '.' );
 		} );
 
 		console.log( 'isPartner: ' + TWAPI.isPartner() );
