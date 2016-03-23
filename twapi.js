@@ -13,6 +13,7 @@
 		var _username = '';
 		var _channel = '';
 		var _ws;
+		var _wsGroup;
 		var _online = false;
 		var _game = '';
 		var _status = '';
@@ -53,9 +54,11 @@
 				console.error( 'TWAPI not set up, cannot run chat.' );
 			}
 
+			if ( _ws ) {
+				TWAPI.closeChat();
+			}
+
 			_channel = channel.toLowerCase();
-			_chatters = {};
-			_followers = [];
 
 			JSONP(
 				'https://api.twitch.tv/api/channels/' + _channel + '/chat_properties?api_version=3',
@@ -69,16 +72,15 @@
 						_ws.send( 'NICK ' + _username );
 						_ws.send( 'JOIN #' + _channel );
 					}
-					// show raw data
+
 					_ws.onmessage = function( event ) {
 						var messages = event.data.split( '\r\n' );
 						for ( var i = 0; i < messages.length; i++ ) {
-							var msg = messages[i]
+							var msg = messages[i];
 							if ( msg === 'PING :tmi.twitch.tv' ) {
 								_ws.send( 'PONG :tmi.twitch.tv' );
-								console.log( 'PONG' );
 							}
-							else {
+							else if ( msg ) {
 								_parseMessage( msg );
 							}
 						}
@@ -86,9 +88,35 @@
 
 					_pingAPI();
 					_getSubBadgeUrl();
-					callback( _channel );
+					if ( callback ) {
+						callback( _channel );
+					}
 				} // function()
-			);  // $.getJSON(
+			);  // $.getJSON()
+
+			// Whispers / group chat
+
+			_wsGroup = new WebSocket( 'ws://group-ws.tmi.twitch.tv' );
+			// alternatively: http://tmi.twitch.tv/servers?cluster=group
+			_wsGroup.onopen = function (event) {
+				_wsGroup.send( 'CAP REQ :twitch.tv/commands twitch.tv/tags' );
+				_wsGroup.send( 'PASS oauth:' + _oauth );
+				_wsGroup.send( 'NICK ' + _username );
+			}
+			_wsGroup.onmessage = function( event ) {
+				var messages = event.data.split( '\r\n' );
+				for ( var i = 0; i < messages.length; i++ ) {
+					var msg = messages[i];
+					if ( msg === 'PING :tmi.twitch.tv' ) {
+						_wsGroup.send( 'PONG :tmi.twitch.tv' );
+						console.info( msg );
+					}
+					else if ( msg ) {
+						_parseGroup( msg );
+						console.info( msg );
+					}
+				}
+			};
 		}
 
 		TWAPI.closeChat = function() {
@@ -96,7 +124,29 @@
 				return console.error( 'Chat is not open.' );
 			}
 			_ws.close();
+			_wsGroup.close();
+
 			console.log( 'Chat closed.' );
+			_channel = '';
+			_ws = '';
+			_wsGroup = '';
+			_online = false;
+			_game = '';
+			_status = '';
+			_followerCount = '';
+			_totalViewCount = '';
+			_partner = '';
+			_currentViewCount = '';
+			_fps = '';
+			_videoHeight = '';
+			_delay = '';
+			_subBadgeUrl = '';
+			_chatters = {};
+			_followers = [];
+			_createdAt = '';
+			_logo = '';
+			_videoBanner = '';
+			_profileBanner = '';
 		}
 
 		TWAPI.sendChat = function( msg ) {
@@ -104,6 +154,13 @@
 				return console.error( 'Chat is not open.' );
 			}
 			_ws.send( 'PRIVMSG #' + _channel + ' :' + msg );
+		}
+
+		TWAPI.sendWhisper = function( user, msg ) {
+			if (!_wsGroup) {
+				return console.error( 'Group chat is not open.' );
+			}
+			_wsGroup.send( 'PRIVMSG #jtv :/w ' + user + ' ' + msg );
 		}
 
 		TWAPI.getUsername = function() {
@@ -114,7 +171,7 @@
 			return _channel;
 		}
 
-		TWAPI.isOnline = function( callback ) {
+		TWAPI.isOnline = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _online;
 		}
@@ -260,8 +317,72 @@
 
 		// private functions below
 
+		function _parseGroup( text ) {
+			EV( 'twapiRAW', text );
+
+			var textarray = text.split(' ');
+			if ( textarray[2] === 'NOTICE' ) {
+				EV( 'twapiGroupNotice', textarray.slice(4).join(' ').substring(1) );
+			}
+			else if ( textarray[2] === 'WHISPER' ) {
+				var color = '#d2691e';
+				var emotes = '';
+				var turbo = false;
+				var from = '';
+				var message_id = '';
+				var thread_id = '';
+				var user_id = '';
+				var commands = textarray[0].split(';');
+
+				for ( var i = 0; i < commands.length; i++ ) {
+					commands[i] = commands[i].split( '=' );
+					var tempParamName = commands[i][0];
+					var tempParamValue = commands[i][1];
+					if ( tempParamName === 'display-name' ) {
+						if (tempParamValue === '') { // some people don't have a display-name, so getting it from somewhere else as a backup
+							from = textarray[1].split('!')[0].substring(1);
+						} else {
+							from = tempParamValue;
+						}
+					}
+					else if ( tempParamName === '@color' && tempParamValue != '' ) {
+						color = tempParamValue;
+					}
+					else if ( tempParamName === 'turbo' && tempParamValue == '1' ) {
+						turbo = true;
+					}
+					else if ( tempParamName === 'emotes' && tempParamValue != '' ) {
+						emotes = tempParamValue;
+					}
+					else if ( tempParamName === 'message-id' && tempParamValue != '' ) {
+						message_id = tempParamValue;
+					}
+					else if ( tempParamName === 'thread-id' && tempParamValue != '' ) {
+						thread_id = tempParamValue;
+					}
+					else if ( tempParamName === 'user-id' && tempParamValue != '' ) {
+						user_id = tempParamValue;
+					}
+				}
+
+				var joinedText = textarray.slice(4).join(' ').substring(1);
+
+				EV( 'twapiWhisper', {
+					"from": from,
+					"to": textarray[3],
+					"color": color,
+					"emotes": emotes,
+					"turbo": turbo,
+					"message_id": message_id,
+					"thread_id": thread_id,
+					"user_id": user_id,
+					"text": joinedText
+				} );
+			}
+		}
+
 		function _parseMessage( text ) {
-			EV( 'twapiRaw', text);
+			EV( 'twapiRaw', text );
 			var textarray = text.split(' ');
 
 			if ( textarray[2] === 'PRIVMSG' ) { // regular message
@@ -334,8 +455,7 @@
 				var tempParamValue = commands[i][1];
 				if ( tempParamName === 'display-name' ) {
 					if (tempParamValue === '') { // some people don't have a display-name, so getting it from somewhere else as a backup
-						var tempArgs = args[0].split( '!' );
-						from = tempArgs[0];
+						from = args[0].split( '!' )[0].substring(1);
 					} else {
 						from = tempParamValue;
 					}
@@ -515,10 +635,6 @@
 		document.dispatchEvent( msgEvent );
 	}
 
-	function QSA( selector ) {
-		return document.querySelectorAll(selector);
-	}
-
 	function JSONP( url, callback ) {
 		// Keep trying to make a random callback name until it finds a unique one.
 		var randomCallback;
@@ -533,7 +649,7 @@
 
 		var node = document.createElement('script');
 		node.src = url + '&callback=' + randomCallback;
-		QSA('head')[0].appendChild(node);
+		document.querySelectorAll('head')[0].appendChild(node);
 	}
 
 } )( window );
