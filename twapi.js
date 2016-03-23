@@ -89,7 +89,7 @@
 					_pingAPI();
 					_getSubBadgeUrl();
 					if ( callback ) {
-						callback( _channel );
+						callback();
 					}
 				} // function()
 			);  // $.getJSON()
@@ -109,11 +109,9 @@
 					var msg = messages[i];
 					if ( msg === 'PING :tmi.twitch.tv' ) {
 						_wsGroup.send( 'PONG :tmi.twitch.tv' );
-						console.info( msg );
 					}
 					else if ( msg ) {
 						_parseGroup( msg );
-						console.info( msg );
 					}
 				}
 			};
@@ -318,7 +316,7 @@
 		// private functions below
 
 		function _parseGroup( text ) {
-			EV( 'twapiRAW', text );
+			EV( 'twapiRawGroup', text );
 
 			var textarray = text.split(' ');
 			if ( textarray[2] === 'NOTICE' ) {
@@ -642,14 +640,14 @@
 			randomCallback = 'jsonp' + Math.floor( Math.random() * 1000000 );
 		} while ( window[randomCallback] );
 
-		window[randomCallback] = function(json) {
+		window[randomCallback] = function( json ) {
 			callback( json );
 			delete window[randomCallback]; // Cleanup the window object
 		}
 
-		var node = document.createElement('script');
+		var node = document.createElement( 'script' );
 		node.src = url + '&callback=' + randomCallback;
-		document.querySelectorAll('head')[0].appendChild(node);
+		document.querySelectorAll( 'head' )[0].appendChild(node);
 	}
 
 } )( window );
