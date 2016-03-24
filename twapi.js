@@ -7,6 +7,8 @@
 (function( window ) {
 	function define_TWAPI() {
 
+		var _refreshRate = 10; // check the Twitch API every [this many] seconds
+
 		var TWAPI = {}; // this is the return object
 		var _clientid = '';
 		var _oauth = '';
@@ -39,6 +41,11 @@
 			_clientid = clientid;
 			_oauth = oauth;
 
+			var node = document.createElement( 'div' );
+			node.id = 'twapiJsonpContainer';
+			node.style.cssText = 'display:none;';
+			document.querySelectorAll( 'body' )[0].appendChild(node);
+
 			JSONP(
 				'https://api.twitch.tv/kraken?client_id=' + _clientid + '&oauth_token=' + _oauth + '&api_version=3',
 				function( res ) {
@@ -46,7 +53,6 @@
 					callback(_username);
 				}
 			);
-
 		}
 
 		TWAPI.runChat = function( channel, callback ) {
@@ -320,7 +326,7 @@
 
 			var textarray = text.split(' ');
 			if ( textarray[2] === 'NOTICE' ) {
-				EV( 'twapiNoticeGroup', textarray.slice(4).join(' ').substring(1) );
+				EV( 'twapiGroupNotice', textarray.slice(4).join(' ').substring(1) );
 			}
 			else if ( textarray[2] === 'WHISPER' ) {
 				var color = '#d2691e';
@@ -522,9 +528,8 @@
 		}
 
 		function _pingAPI() {
-
 			JSONP(
-				'https://api.twitch.tv/kraken/streams/' + _channel + '?api_version=3',
+				'https://api.twitch.tv/kraken/streams/' + _channel + '?client_id=' + _clientid + '&api_version=3',
 				function( res ) {
 					if ( res.stream ) {
 						_online = true;
@@ -557,7 +562,6 @@
 			JSONP(
 				'https://api.twitch.tv/kraken/channels/' + _channel + '/follows?client_id=' + _clientid + '&api_version=3&limit=100',
 				function( res ) {
-					// Do something about updating recent followers
 					// https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
 					if ( !res.follows ) return;
 
@@ -567,7 +571,9 @@
 					for ( var i = 0; i < res.follows.length; i++ ) {
 						var tempFollower = res.follows[i].user.display_name;
 						if ( _followers.indexOf( tempFollower ) === -1 ) { // if user isn't in _followers
-							if ( !firstUpdate ) EV( 'twapiFollow', tempFollower ); // if it's not the first update, post new follower
+							if ( !firstUpdate ) {
+								EV( 'twapiFollow', tempFollower ); // if it's not the first update, post new follower
+							}
 							_followers.push( tempFollower ); // add the user to the follower list
 						}
 		            }
@@ -591,8 +597,9 @@
 			);
 
 			setTimeout( function() {
+				document.querySelector( '#twapiJsonpContainer' ).innerHTML = '';
 				_pingAPI();
-			}, 60*1000 );
+			}, _refreshRate * 1000 );
 		}
 
 		function _getSubBadgeUrl() {
@@ -647,7 +654,7 @@
 
 		var node = document.createElement( 'script' );
 		node.src = url + '&callback=' + randomCallback;
-		document.querySelectorAll( 'head' )[0].appendChild(node);
+		document.querySelector( '#twapiJsonpContainer' ).appendChild(node);
 	}
 
 } )( window );
