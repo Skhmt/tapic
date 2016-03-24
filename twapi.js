@@ -258,7 +258,7 @@
 		TWAPI.isFollowing = function( user, channel, callback ) {
 			// https://api.twitch.tv/kraken/users/skhmt/follows/channels/food
 			JSONP(
-				'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel + '?api_version=3',
+				'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel + '?api_version=3&client_id=' + _clientid,
 				function( res ) {
 					if ( res.error ) callback( {
 						"isFollowing": false
@@ -266,6 +266,22 @@
 					else callback( {
 						"isFollowing": true,
 						"dateFollowed": ( new Date(res.created_at).toLocaleString() )
+					} );
+				}
+			);
+		}
+
+		TWAPI.isSubscribing = function( user, channel, callback ) {
+			// https://api.twitch.tv/kraken/channels/test_channel/subscriptions/testuser
+			JSONP(
+				'https://api.twitch.tv/kraken/channels/' + channel + '/subscriptions/' + user + '?api_version=3client_id=' + _clientid,
+				function( res ) {
+					if ( res.error ) callback( {
+						"isSubscribing": false
+					} );
+					else callback( {
+						"isSubscribing": true,
+						"dateSubscribed": ( new Date(res.created_at).toLocaleString() )
 					} );
 				}
 			);
