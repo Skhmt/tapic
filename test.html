@@ -11,7 +11,8 @@
 
 <script>
 	var clientid = ''; // public client id
-	var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor, channel_commercial (if you want to run commercials)
+	var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor
+	// channel_commercial (if you want to run commercials), channel_check_subscription (if you want to check subscriber status)
 
 	// Do this first
 	TWAPI.setup( clientid, oauth, function( username ) {
@@ -141,9 +142,17 @@
 			else console.log( folUser + ' is not following ' + folTarget + '.' );
 		} );
 
+		// // Requires 'channel_check_subscription'
+		// var subUser = 'skhmt';
+		// var subChannel = 'letsmakefriends';
+		// TWAPI.isSubscribing( subUser, subChannel, function( res ) {
+		// 	if ( res.isSubscribing ) console.log( subUser + ' has been subbed to ' + subChannel + ' since: ' + res.dateSubscribed );
+		// 	else console.log( subUser + ' is not subbed to ' + subChannel + '.' );
+		// } );
+
 		console.log( 'isPartner: ' + TWAPI.isPartner() );
 		console.log( 'getSubBadgeUrl: ' + TWAPI.getSubBadgeUrl() );
-		// TWAPI.runCommercial('30');
+		// TWAPI.runCommercial('30'); // requires 'channel_commercial'
 
 		console.log( 'isOnline: ' + TWAPI.isOnline() );
 		console.log( 'getFps: ' + TWAPI.getFps() );
