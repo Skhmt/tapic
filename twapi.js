@@ -92,11 +92,15 @@
 						}
 					};
 
-					_pingAPI();
-					_getSubBadgeUrl();
-					if ( callback ) {
-						callback();
-					}
+					
+					_getSubBadgeUrl(function() {
+						_pingAPI();
+						if ( callback ) {
+							setTimeout(function(){
+								callback();
+							}, 500);
+						}
+					});
 				} // function()
 			);  // $.getJSON()
 
@@ -618,12 +622,15 @@
 			}, _refreshRate * 1000 );
 		}
 
-		function _getSubBadgeUrl() {
+		function _getSubBadgeUrl(callback) {
 			JSONP(
 				'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3',
 				function( res ) {
 					if ( res.subscriber != null ) {
 						_subBadgeUrl = res.subscriber.image;
+						if ( callback ) {
+							callback( res.subscriber.image );
+						}
 					}
 				}
 			);
