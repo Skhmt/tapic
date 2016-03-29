@@ -50,7 +50,9 @@
 				'https://api.twitch.tv/kraken?client_id=' + _clientid + '&oauth_token=' + _oauth + '&api_version=3',
 				function( res ) {
 					_username = res.token.user_name;
-					callback(_username);
+					if (callback) {
+						callback(_username);
+					}
 				}
 			);
 		}
@@ -92,13 +94,11 @@
 						}
 					};
 
-					
+
 					_getSubBadgeUrl(function() {
 						_pingAPI();
 						if ( callback ) {
-							setTimeout(function(){
-								callback();
-							}, 500);
+							setTimeout(callback, 500);
 						}
 					});
 				} // function()
@@ -628,9 +628,9 @@
 				function( res ) {
 					if ( res.subscriber != null ) {
 						_subBadgeUrl = res.subscriber.image;
-						if ( callback ) {
-							callback( res.subscriber.image );
-						}
+					}
+					if ( callback ) {
+						callback();
 					}
 				}
 			);
