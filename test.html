@@ -20,7 +20,7 @@
 		var channel = username;
 		TWAPI.runChat( channel, function() {
 			// Run test functions after joining a chat
-			setTimeout(tests, 4*1000);
+			tests();
 		} );
 	} );
 
