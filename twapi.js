@@ -157,6 +157,34 @@
 			_profileBanner = '';
 		}
 
+		TWAPI.changeChannel = function( channel ) {
+			if (!_ws) {
+				return console.error( 'Chat is not open.' );
+			}
+			_ws.send( 'PART #' + _channel );
+
+			_channel = channel;
+			_online = false;
+			_game = '';
+			_status = '';
+			_followerCount = '';
+			_totalViewCount = '';
+			_partner = '';
+			_currentViewCount = '';
+			_fps = '';
+			_videoHeight = '';
+			_delay = '';
+			_subBadgeUrl = '';
+			_chatters = {};
+			_followers = [];
+			_createdAt = '';
+			_logo = '';
+			_videoBanner = '';
+			_profileBanner = '';
+
+			_ws.send( 'JOIN #' + _channel );
+		}
+
 		TWAPI.sendChat = function( msg ) {
 			if (!_ws) {
 				return console.error( 'Chat is not open.' );
