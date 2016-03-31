@@ -7,6 +7,8 @@ This also has twitch chat via websockets, which is accessed via eventListeners.
 See test.html for examples on every part of twapi.js. Open up the console (F12 or ctrl-shift-i) to see the test outputs.
 You will need to put in a client id and oauth token in test.html for it to work. 
 
-This is made for use in a client-side website, no server required. You could, for example, make a .html and package twapi.js with it, and use it with CLR browser. Or make an entire bot with it, but run off of the client's browser rather than a server. Or whatever really.
+This is made for use in a client-side website, no server required. Use cases are basically: CLR/BrowserSource on OBS, client-side websites, Electron, and NW.js. It does not work with vanilla node.js due to the use of `document.(event listener/emitter functions)` and browser WebSockets.
 
 This was written entirely in Javascript and has no dependencies besides a relatively up-to-date browser.
+
+Compile for a minified version at `http://closure-compiler.appspot.com/home` or use it from `skhmt.github.io/twapi/twapi.min.js`
