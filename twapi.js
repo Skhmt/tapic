@@ -164,7 +164,7 @@
 			_ws.send( 'PART #' + _channel );
 
 			_channel = channel;
-			_online = true;
+			_online = false;
 			_game = '';
 			_status = '';
 			_followerCount = '';
