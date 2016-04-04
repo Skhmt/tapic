@@ -49,8 +49,12 @@
 		writeChat( e.detail + ' has left the channel.' );
 	} );
 
-	document.addEventListener('twapiClear', function( e ) {
-		writeChat( e.detail + ' has been cleared (aka purged/timedout).' );
+	document.addEventListener('twapiClearUser', function( e ) {
+		writeChat( e.detail + ' has been purged/timed out.' );
+	} );
+	
+	document.addEventListener('twapiClearChat', function( e ) {
+		writeChat( 'Chat has been cleared.' );
 	} );
 
 	document.addEventListener('twapiHost', function( e ) {
