@@ -484,8 +484,13 @@
 			}
 
 			else if ( textarray[1] === 'CLEARCHAT' ) {
-				var clearname = textarray[3].substring(1);
-				EV( 'twapiClear', clearname );
+				if ( textarray.length === 4 ) {
+					var clearname = textarray[3].substring(1);
+					EV( 'twapiClearUser', clearname );
+				}
+				else {
+					EV( 'twapiClearChat');
+				}
 			}
 
 			else {
