@@ -1,7 +1,8 @@
 // Twitch Websockets & API in javascript - TWAPI.js
-// Made by skhmt, 2016
+// Version 1.1 - 7 April 2016
+// Made by skhmt
 
-// compile at: http://closure-compiler.appspot.com/
+// compile/minify at: http://closure-compiler.appspot.com/
 
 
 (function( window ) {
@@ -15,7 +16,6 @@
 		var _username = '';
 		var _channel = '';
 		var _ws;
-		var _wsGroup;
 		var _online = false;
 		var _game = '';
 		var _status = '';
@@ -103,41 +103,17 @@
 					});
 				} // function()
 			);  // $.getJSON()
-
-			// Whispers / group chat
-
-			_wsGroup = new WebSocket( 'ws://group-ws.tmi.twitch.tv' );
-			// alternatively: http://tmi.twitch.tv/servers?cluster=group
-			_wsGroup.onopen = function (event) {
-				_wsGroup.send( 'CAP REQ :twitch.tv/commands twitch.tv/tags' );
-				_wsGroup.send( 'PASS oauth:' + _oauth );
-				_wsGroup.send( 'NICK ' + _username );
-			}
-			_wsGroup.onmessage = function( event ) {
-				var messages = event.data.split( '\r\n' );
-				for ( var i = 0; i < messages.length; i++ ) {
-					var msg = messages[i];
-					if ( msg === 'PING :tmi.twitch.tv' ) {
-						_wsGroup.send( 'PONG :tmi.twitch.tv' );
-					}
-					else if ( msg ) {
-						_parseGroup( msg );
-					}
-				}
-			};
-		}
+		} // runChat()
 
 		TWAPI.closeChat = function() {
 			if (!_ws) {
 				return console.error( 'Chat is not open.' );
 			}
 			_ws.close();
-			_wsGroup.close();
 
 			console.log( 'Chat closed.' );
 			_channel = '';
 			_ws = '';
-			_wsGroup = '';
 			_online = false;
 			_game = '';
 			_status = '';
@@ -193,10 +169,10 @@
 		}
 
 		TWAPI.sendWhisper = function( user, msg ) {
-			if (!_wsGroup) {
-				return console.error( 'Group chat is not open.' );
+			if (!_ws) {
+				return console.error( 'Chat is not open.' );
 			}
-			_wsGroup.send( 'PRIVMSG #jtv :/w ' + user + ' ' + msg );
+			_ws.send( 'PRIVMSG #jtv :/w ' + user + ' ' + msg );
 		}
 
 		TWAPI.getUsername = function() {
@@ -369,70 +345,6 @@
 
 		// private functions below
 
-		function _parseGroup( text ) {
-			EV( 'twapiRawGroup', text );
-
-			var textarray = text.split(' ');
-			if ( textarray[2] === 'NOTICE' ) {
-				EV( 'twapiGroupNotice', textarray.slice(4).join(' ').substring(1) );
-			}
-			else if ( textarray[2] === 'WHISPER' ) {
-				var color = '#d2691e';
-				var emotes = '';
-				var turbo = false;
-				var from = '';
-				var message_id = '';
-				var thread_id = '';
-				var user_id = '';
-				var commands = textarray[0].split(';');
-
-				for ( var i = 0; i < commands.length; i++ ) {
-					commands[i] = commands[i].split( '=' );
-					var tempParamName = commands[i][0];
-					var tempParamValue = commands[i][1];
-					if ( tempParamName === 'display-name' ) {
-						if (tempParamValue === '') { // some people don't have a display-name, so getting it from somewhere else as a backup
-							from = textarray[1].split('!')[0].substring(1);
-						} else {
-							from = tempParamValue;
-						}
-					}
-					else if ( tempParamName === '@color' && tempParamValue != '' ) {
-						color = tempParamValue;
-					}
-					else if ( tempParamName === 'turbo' && tempParamValue == '1' ) {
-						turbo = true;
-					}
-					else if ( tempParamName === 'emotes' && tempParamValue != '' ) {
-						emotes = tempParamValue;
-					}
-					else if ( tempParamName === 'message-id' && tempParamValue != '' ) {
-						message_id = tempParamValue;
-					}
-					else if ( tempParamName === 'thread-id' && tempParamValue != '' ) {
-						thread_id = tempParamValue;
-					}
-					else if ( tempParamName === 'user-id' && tempParamValue != '' ) {
-						user_id = tempParamValue;
-					}
-				}
-
-				var joinedText = textarray.slice(4).join(' ').substring(1);
-
-				EV( 'twapiWhisper', {
-					"from": from,
-					"to": textarray[3],
-					"color": color,
-					"emotes": emotes,
-					"turbo": turbo,
-					"message_id": message_id,
-					"thread_id": thread_id,
-					"user_id": user_id,
-					"text": joinedText
-				} );
-			}
-		}
-
 		function _parseMessage( text ) {
 			EV( 'twapiRaw', text );
 			var textarray = text.split(' ');
@@ -483,6 +395,10 @@
 				} );
 			}
 
+			else if ( textarray[2] === 'WHISPER' ) {
+				_msgWhisper( textarray );
+			}
+
 			else if ( textarray[1] === 'CLEARCHAT' ) {
 				if ( textarray.length === 4 ) {
 					var clearname = textarray[3].substring(1);
@@ -496,6 +412,62 @@
 			else {
 				// if ( text ) console.info( text );
 			}
+		}
+
+		function _msgWhisper( textarray ) {
+			var color = '#d2691e';
+			var emotes = '';
+			var turbo = false;
+			var from = '';
+			var message_id = '';
+			var thread_id = '';
+			var user_id = '';
+			var commands = textarray[0].split(';');
+
+			for ( var i = 0; i < commands.length; i++ ) {
+				commands[i] = commands[i].split( '=' );
+				var tempParamName = commands[i][0];
+				var tempParamValue = commands[i][1];
+				if ( tempParamName === 'display-name' ) {
+					if (tempParamValue === '') { // some people don't have a display-name, so getting it from somewhere else as a backup
+						from = textarray[1].split('!')[0].substring(1);
+					} else {
+						from = tempParamValue;
+					}
+				}
+				else if ( tempParamName === '@color' && tempParamValue != '' ) {
+					color = tempParamValue;
+				}
+				else if ( tempParamName === 'turbo' && tempParamValue == '1' ) {
+					turbo = true;
+				}
+				else if ( tempParamName === 'emotes' && tempParamValue != '' ) {
+					emotes = tempParamValue;
+				}
+				else if ( tempParamName === 'message-id' && tempParamValue != '' ) {
+					message_id = tempParamValue;
+				}
+				else if ( tempParamName === 'thread-id' && tempParamValue != '' ) {
+					thread_id = tempParamValue;
+				}
+				else if ( tempParamName === 'user-id' && tempParamValue != '' ) {
+					user_id = tempParamValue;
+				}
+			}
+
+			var joinedText = textarray.slice(4).join(' ').substring(1);
+
+			EV( 'twapiWhisper', {
+				"from": from,
+				"to": textarray[3],
+				"color": color,
+				"emotes": emotes,
+				"turbo": turbo,
+				"message_id": message_id,
+				"thread_id": thread_id,
+				"user_id": user_id,
+				"text": joinedText
+			} );
 		}
 
 		function _msgPriv( command, args ) {
