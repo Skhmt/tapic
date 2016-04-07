@@ -1,8 +1,7 @@
 // Twitch Websockets & API in javascript - TWAPI.js
-// Version 1.1 - 7 April 2016
-// Made by skhmt
+// Made by skhmt, 2016
 
-// compile/minify at: http://closure-compiler.appspot.com/
+// compile at: http://closure-compiler.appspot.com/
 
 
 (function( window ) {
@@ -68,41 +67,33 @@
 
 			_channel = channel.toLowerCase();
 
-			JSONP(
-				'https://api.twitch.tv/api/channels/' + _channel + '/chat_properties?api_version=3',
-				function( res ) {
-					var server = res.web_socket_servers[ Math.floor( Math.random() * res.web_socket_servers.length ) ];
-					server = 'ws://' + server;
-					_ws = new WebSocket( server );
-					_ws.onopen = function (event) {
-						_ws.send( 'CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership' );
-						_ws.send( 'PASS oauth:' + _oauth );
-						_ws.send( 'NICK ' + _username );
-						_ws.send( 'JOIN #' + _channel );
+			_ws = new WebSocket( 'ws://irc-ws.chat.twitch.tv:80' );
+			_ws.onopen = function (event) {
+				_ws.send( 'CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership' );
+				_ws.send( 'PASS oauth:' + _oauth );
+				_ws.send( 'NICK ' + _username );
+				_ws.send( 'JOIN #' + _channel );
+			}
+
+			_ws.onmessage = function( event ) {
+				var messages = event.data.split( '\r\n' );
+				for ( var i = 0; i < messages.length; i++ ) {
+					var msg = messages[i];
+					if ( msg === 'PING :tmi.twitch.tv' ) {
+						_ws.send( 'PONG :tmi.twitch.tv' );
 					}
+					else if ( msg ) {
+						_parseMessage( msg );
+					}
+				}
+			};
 
-					_ws.onmessage = function( event ) {
-						var messages = event.data.split( '\r\n' );
-						for ( var i = 0; i < messages.length; i++ ) {
-							var msg = messages[i];
-							if ( msg === 'PING :tmi.twitch.tv' ) {
-								_ws.send( 'PONG :tmi.twitch.tv' );
-							}
-							else if ( msg ) {
-								_parseMessage( msg );
-							}
-						}
-					};
-
-
-					_getSubBadgeUrl(function() {
-						_pingAPI();
-						if ( callback ) {
-							setTimeout(callback, 500);
-						}
-					});
-				} // function()
-			);  // $.getJSON()
+			_getSubBadgeUrl(function() {
+				_pingAPI();
+				if ( callback ) {
+					setTimeout(callback, 500);
+				}
+			});
 		} // runChat()
 
 		TWAPI.closeChat = function() {
