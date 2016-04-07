@@ -31,12 +31,6 @@
 		// writeChat( '* ' + e.detail );
 	} );
 
-	document.addEventListener('twapiRawGroup', function( e ) {
-		// You really don't NEED to see raw messages from the group server. But you can if you want.
-		// You can also manually parse the raw messages from the group server if you don't trust TWAPI.js
-		// writeChat( '+ ' + e.detail );
-	} );
-
 	document.addEventListener('twapiNotice', function( e ) {
 		writeChat( e.detail );
 	} );
@@ -104,10 +98,6 @@
 			// e.detail.emotes is the emotes, e.g. '25:0-4,12-16/1902:6-10'
 			// https://github.com/justintv/Twitch-API/blob/master/IRC.md#privmsg
 		writeChat( output );
-	} );
-
-	document.addEventListener('twapiNoticeGroup', function( e ) {
-		writeChat( e.detail );
 	} );
 
 	document.addEventListener('twapiWhisper', function( e ) {
