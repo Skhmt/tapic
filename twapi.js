@@ -54,7 +54,7 @@
 					}
 				}
 			);
-		}
+		};
 
 		TWAPI.runChat = function( channel, callback ) {
 			if ( !_username || !_oauth ) {
@@ -73,7 +73,7 @@
 				_ws.send( 'PASS oauth:' + _oauth );
 				_ws.send( 'NICK ' + _username );
 				_ws.send( 'JOIN #' + _channel );
-			}
+			};
 
 			_ws.onmessage = function( event ) {
 				var messages = event.data.split( '\r\n' );
@@ -94,7 +94,7 @@
 					setTimeout(callback, 500);
 				}
 			});
-		} // runChat()
+		}; // runChat()
 
 		TWAPI.closeChat = function() {
 			if (!_ws) {
@@ -122,7 +122,7 @@
 			_logo = '';
 			_videoBanner = '';
 			_profileBanner = '';
-		}
+		};
 
 		TWAPI.changeChannel = function( channel ) {
 			if (!_ws) {
@@ -150,109 +150,109 @@
 			_profileBanner = '';
 
 			_ws.send( 'JOIN #' + _channel );
-		}
+		};
 
 		TWAPI.sendChat = function( msg ) {
 			if (!_ws) {
 				return console.error( 'Chat is not open.' );
 			}
 			_ws.send( 'PRIVMSG #' + _channel + ' :' + msg );
-		}
+		};
 
 		TWAPI.sendWhisper = function( user, msg ) {
 			if (!_ws) {
 				return console.error( 'Chat is not open.' );
 			}
 			_ws.send( 'PRIVMSG #jtv :/w ' + user + ' ' + msg );
-		}
+		};
 
 		TWAPI.getUsername = function() {
 			return _username;
-		}
+		};
 
 		TWAPI.getChannel = function() {
 			return _channel;
-		}
+		};
 
 		TWAPI.isOnline = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _online;
-		}
+		};
 
 		TWAPI.getStatus = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _status;
-		}
+		};
 
 		TWAPI.getGame = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _game;
-		}
+		};
 
 		TWAPI.getFollowerCount = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _followerCount;
-		}
+		};
 
 		TWAPI.getTotalViewCount = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _totalViewCount;
-		}
+		};
 
 		TWAPI.isPartner = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _partner;
-		}
+		};
 
 		TWAPI.getCurrentViewCount = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _currentViewCount;
-		}
+		};
 
 		TWAPI.getFps = function() {
 			if ( !_online ) return console.error( 'Stream not online.' );
 			return _fps;
-		}
+		};
 
 		TWAPI.getVideoHeight = function() {
 			if ( !_online ) return console.error( 'Stream not online.' );
 			return _videoHeight;
-		}
+		};
 
 		TWAPI.getDelay = function() {
 			if ( !_online ) return console.error( 'Stream not online.' );
 			return _delay;
-		}
+		};
 
 		TWAPI.getSubBadgeUrl = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _subBadgeUrl;
-		}
+		};
 
 		TWAPI.getChatters = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _chatters;
-		}
+		};
 
 		TWAPI.getCreatedAt = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _createdAt;
-		}
+		};
 
 		TWAPI.getLogo = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _logo;
-		}
+		};
 
 		TWAPI.getVideoBanner = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _videoBanner;
-		}
+		};
 
 		TWAPI.getProfileBanner = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _profileBanner;
-		}
+		};
 
 		TWAPI.isFollowing = function( user, channel, callback ) {
 			// https://api.twitch.tv/kraken/users/skhmt/follows/channels/food
@@ -268,7 +268,7 @@
 					} );
 				}
 			);
-		}
+		};
 
 		TWAPI.isSubscribing = function( user, channel, callback ) {
 			// https://api.twitch.tv/kraken/channels/test_channel/subscriptions/testuser
@@ -284,7 +284,7 @@
 					} );
 				}
 			);
-		}
+		};
 
 		TWAPI.runCommercial = function( length ) {
 			if ( !_partner ) console.error( 'Not a partner, cannot run a commercial.' );
@@ -299,7 +299,7 @@
 			req.open('POST', url, true);
 			req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
 			req.send( 'length=' + length );
-		}
+		};
 
 		TWAPI.setStatusGame = function( status, game ) {
 			if ( !status ) status = _status;
@@ -332,7 +332,7 @@
 			};
 
 			req.send();
-		}
+		};
 
 		// private functions below
 
@@ -632,6 +632,32 @@
 			);
 		}
 
+		// Utilities
+
+		function EV( eventName, eventDetail ) {
+			var msgEvent = new CustomEvent( eventName, {
+				"detail" : eventDetail
+			} );
+			document.dispatchEvent( msgEvent );
+		}
+
+		function JSONP( url, callback ) {
+			// Keep trying to make a random callback name until it finds a unique one.
+			var randomCallback;
+			do {
+				randomCallback = 'jsonp' + Math.floor( Math.random() * 1000000 );
+			} while ( window[randomCallback] );
+
+			window[randomCallback] = function( json ) {
+				callback( json );
+				delete window[randomCallback]; // Cleanup the window object
+			}
+
+			var node = document.createElement( 'script' );
+			node.src = url + '&callback=' + randomCallback;
+			document.querySelector( '#twapiJsonpContainer' ).appendChild(node);
+		}
+
 		return TWAPI;
 	}
 
@@ -648,32 +674,6 @@
 	}
 	else {
 		console.error( 'TWAPI already defined.' );
-	}
-
-	// Utilities
-
-	function EV( eventName, eventDetail ) {
-		var msgEvent = new CustomEvent( eventName, {
-			"detail" : eventDetail
-		} );
-		document.dispatchEvent( msgEvent );
-	}
-
-	function JSONP( url, callback ) {
-		// Keep trying to make a random callback name until it finds a unique one.
-		var randomCallback;
-		do {
-			randomCallback = 'jsonp' + Math.floor( Math.random() * 1000000 );
-		} while ( window[randomCallback] );
-
-		window[randomCallback] = function( json ) {
-			callback( json );
-			delete window[randomCallback]; // Cleanup the window object
-		}
-
-		var node = document.createElement( 'script' );
-		node.src = url + '&callback=' + randomCallback;
-		document.querySelector( '#twapiJsonpContainer' ).appendChild(node);
 	}
 
 } )( window );
