@@ -2,7 +2,7 @@
 // Version 2.0
 // Made by skhmt, 2016
 
-// compile at: https://closure-compiler.appspot.com/
+// compile/minify at: https://closure-compiler.appspot.com/
 
 
 (function() {
@@ -776,8 +776,8 @@
 	}
 	else if ( typeof define === 'function' && define.amd ) { // require.js
 		define([], function() {
-        	return define_TWAPI();
-      	});
+			return define_TWAPI();
+		});
 	}
 	else { // regular js
 		if ( typeof(TWAPI) === 'undefined' ) {
