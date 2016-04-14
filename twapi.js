@@ -1,5 +1,5 @@
 // Twitch Websockets & API in javascript - TWAPI.js
-// Version 1.2
+// Version 2.0
 // Made by skhmt, 2016
 
 // compile at: https://closure-compiler.appspot.com/
@@ -401,7 +401,7 @@
 		// Private functions
 
 		function _parseMessage( text ) {
-			EV( 'twapiRaw', text );
+			EV( 'raw', text );
 			var textarray = text.split(' ');
 
 			if ( textarray[2] === 'PRIVMSG' ) { // regular message
@@ -411,24 +411,24 @@
 			}
 
 			else if ( textarray[1] === 'PRIVMSG' ) { // host notification
-				EV( 'twapiHost', textarray[3].substring(1) );
+				EV( 'host', textarray[3].substring(1) );
 			}
 
 			else if ( textarray[2] === 'NOTICE' ) {
 				textarray.splice( 0, 4 );
 				var output = textarray.join(' ').substring(1);
-				EV( 'twapiNotice', output );
+				EV( 'notice', output );
 			}
 
 			else if ( textarray[1] === 'JOIN' ) {
 				var joinname = textarray[0].split('!')[0].substring(1);
-				EV( 'twapiJoin', joinname );
+				EV( 'join', joinname );
 			}
 
 			else if ( textarray[1] === 'PART' ) {
 				// :mudb3rt!mudb3rt@mudb3rt.tmi.twitch.tv PART #ultra
 				var partname = textarray[0].split('!')[0].substring(1);
-				EV( 'twapiPart', partname );
+				EV( 'part', partname );
 			}
 
 			else if ( textarray[2] === 'ROOMSTATE' ) {
@@ -442,7 +442,7 @@
 					else if ( stateparam[0] === 'slow' ) slow = stateparam[1];
 					else if ( stateparam[0] === 'subs-only' ) subs_only = stateparam[1];
 				}
-				EV( 'twapiRoomstate', {
+				EV( 'roomstate', {
 					"lang": lang,
 					"r9k": r9k,
 					"slow": slow,
@@ -457,10 +457,10 @@
 			else if ( textarray[1] === 'CLEARCHAT' ) {
 				if ( textarray.length === 4 ) {
 					var clearname = textarray[3].substring(1);
-					EV( 'twapiClearUser', clearname );
+					EV( 'clearUser', clearname );
 				}
 				else {
-					EV( 'twapiClearChat');
+					EV( 'clearChat');
 				}
 			}
 
@@ -512,7 +512,7 @@
 
 			var joinedText = textarray.slice(4).join(' ').substring(1);
 
-			EV( 'twapiWhisper', {
+			EV( 'whisper', {
 				"from": from,
 				"to": textarray[3],
 				"color": color,
@@ -580,20 +580,20 @@
 			if ( 'from' === 'twitchnotify' ) { // Sub notification
 				var notifyText = text.split(' ');
 				if ( notifyText[1] === 'just' ) { // "[name] just subscribed!"
-					EV( 'twapiSub', notifyText[0] );
+					EV( 'sub', notifyText[0] );
 				}
 				else if ( notifyText[1] === 'subscribed' ) { // "[name] subscribed for 13 months in a row!"
-					EV( 'twapiSubMonths', {
+					EV( 'subMonths', {
 						"name": notifyText[0],
 						"months": notifyText[3]
 					} );
 				}
 				else { // "[number] viewers resubscribed while you were away!"
-					EV( 'twapiSubsAway', notifyText[0] );
+					EV( 'subsAway', notifyText[0] );
 				}
 			}
 			else {
-				EV( 'twapiMsg',  {
+				EV( 'message',  {
 					"from": from,
 					"color": color,
 					"mod": mod,
@@ -652,7 +652,7 @@
 						var tempFollower = res.follows[i].user.display_name;
 						if ( _followers.indexOf( tempFollower ) === -1 ) { // if user isn't in _followers
 							if ( !firstUpdate ) {
-								EV( 'twapiFollow', tempFollower ); // if it's not the first update, post new follower
+								EV( 'follow', tempFollower ); // if it's not the first update, post new follower
 							}
 							_followers.push( tempFollower ); // add the user to the follower list
 						}
