@@ -1,10 +1,11 @@
 // Twitch Websockets & API in javascript - TWAPI.js
+// Version 1.2
 // Made by skhmt, 2016
 
-// compile at: http://closure-compiler.appspot.com/
+// compile at: https://closure-compiler.appspot.com/
 
 
-(function( window ) {
+(function() {
 	function define_TWAPI() {
 
 		var _refreshRate = 10; // check the Twitch API every [this many] seconds
@@ -32,6 +33,13 @@
 		var _logo = '';
 		var _videoBanner = '';
 		var _profileBanner = '';
+		var _isNode = false;
+		var _events = new Map();
+
+		if ( typeof module !== 'undefined' && typeof module.exports !== 'undefined' ) {
+			_isNode = true;
+			console.info('TWAPI is running in Node.js.');
+		}
 
 		TWAPI.setup = function( clientid, oauth, callback ) {
 			if ( !clientid || !oauth ) {
@@ -40,16 +48,18 @@
 			_clientid = clientid;
 			_oauth = oauth;
 
-			var node = document.createElement( 'div' );
-			node.id = 'twapiJsonpContainer';
-			node.style.cssText = 'display:none;';
-			document.querySelectorAll( 'body' )[0].appendChild(node);
+			if ( !_isNode ) { // node.js doesn't have a DOM
+				var node = document.createElement( 'div' );
+				node.id = 'twapiJsonpContainer';
+				node.style.cssText = 'display:none;';
+				document.getElementsByTagName( 'body' )[0].appendChild(node);
+			}
 
 			JSONP(
 				'https://api.twitch.tv/kraken?client_id=' + _clientid + '&oauth_token=' + _oauth + '&api_version=3',
 				function( res ) {
 					_username = res.token.user_name;
-					if (callback) {
+					if ( callback ) {
 						callback(_username);
 					}
 				}
@@ -67,16 +77,28 @@
 
 			_channel = channel.toLowerCase();
 
-			_ws = new WebSocket( 'ws://irc-ws.chat.twitch.tv:80' );
-			_ws.onopen = function (event) {
+			if ( _isNode ) {
+				var WS = require( 'ws' );
+				_ws = new WS( 'ws://irc-ws.chat.twitch.tv:80' );
+			}
+			else {
+				_ws = new WebSocket( 'ws://irc-ws.chat.twitch.tv:80' );
+			}
+			function wsOpen() {
 				_ws.send( 'CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership' );
 				_ws.send( 'PASS oauth:' + _oauth );
 				_ws.send( 'NICK ' + _username );
 				_ws.send( 'JOIN #' + _channel );
-			};
+			}
+			function wsMessage( event ) {
+				var messages;
+				if ( _isNode ) {
+					messages = event.split( '\r\n' );
+				}
+				else {
+					messages = event.data.split( '\r\n' );
+				}
 
-			_ws.onmessage = function( event ) {
-				var messages = event.data.split( '\r\n' );
 				for ( var i = 0; i < messages.length; i++ ) {
 					var msg = messages[i];
 					if ( msg === 'PING :tmi.twitch.tv' ) {
@@ -86,7 +108,15 @@
 						_parseMessage( msg );
 					}
 				}
-			};
+			}
+			if ( _isNode ) {
+				_ws.on('open', wsOpen);
+				_ws.on('message', wsMessage);
+			}
+			else {
+				_ws.onopen = wsOpen;
+				_ws.onmessage = wsMessage;
+			}
 
 			_getSubBadgeUrl(function() {
 				_pingAPI();
@@ -292,13 +322,28 @@
 
 			if ( !length ) length = 30;
 
-			var url = 'https://api.twitch.tv/kraken/channels/' + _channel + '/commercial';
-			url += '?oauth_token=' + _oauth;
+			var host = 'https://api.twitch.tv';
+			var path = '/kraken/channels/' + _channel + '/commercial?oauth_token=' + _oauth;
+			var url = host + path;
 
-			var req = new XMLHttpRequest();
-			req.open('POST', url, true);
-			req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
-			req.send( 'length=' + length );
+			if ( _isNode ) {
+				var options = {
+					host: host,
+					path: path,
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+					}
+				}
+				var http = require( 'https' );
+				http.request(options).write( 'length=' + length ).end();
+			}
+			else {
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST', url, true);
+				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+				xhr.send( 'length=' + length );
+			}
 		};
 
 		TWAPI.setStatusGame = function( status, game ) {
@@ -310,31 +355,50 @@
 			url += '&channel[game]=' + encodeURIComponent(game);
 			url += '&_method=put&oauth_token=' + _oauth;
 
-			var req = new XMLHttpRequest();
-
-			req.open('GET', url, true);
-
-			req.onload = function() {
-			  if ( req.status >= 200 && req.status < 400 ) {
-			    // Success!
-			    var resp = JSON.parse( req.responseText );
-				_game = resp.game;
-				_status = resp.status;
-			  } else {
-			    // We reached our target server, but it returned an error
-				console.error( req.responseText );
-			  }
-			};
-
-			req.onerror = function() {
-			  // There was a connection error of some sort
-			  console.error( req.responseText );
-			};
-
-			req.send();
+			if ( _isNode ) { // Node
+				var http = require( 'https' );
+				http.get( url, function( res ) {
+					var output = '';
+					res.setEncoding( 'utf8' );
+					res.on( 'data', function( chunk ) {
+						output += chunk;
+					} );
+					res.on( 'end', function() {
+						if ( res.statusCode >= 200 && res.statusCode < 400 ) {
+							var resp = JSON.parse( output );
+							_game = resp.game;
+							_status = resp.status;
+						}
+						else { // error
+							console.error( output );
+						}
+					} );
+				} ).on( 'error', function( e ) {
+					console.error( e.message );
+				} );
+			}
+			else { // vanilla JS
+				var xhr = new XMLHttpRequest();
+				xhr.open( 'GET', url, true );
+				xhr.onload = function() {
+					if ( xhr.status >= 200 && xhr.status < 400 ) {
+					    var resp = JSON.parse( xhr.responseText );
+						_game = resp.game;
+						_status = resp.status;
+					} else {
+					    // We reached our target server, but it returned an error
+						console.error( xhr.responseText );
+					}
+				};
+				xhr.onerror = function() {
+				  // There was a connection error of some sort
+				  console.error( xhr.responseText );
+				};
+				xhr.send();
+			}
 		};
 
-		// private functions below
+		// Private functions
 
 		function _parseMessage( text ) {
 			EV( 'twapiRaw', text );
@@ -599,26 +663,32 @@
 			JSONP(
 				'https://tmi.twitch.tv/group/user/' + _channel + '/chatters?client_id=' + _clientid + '&api_version=3',
 				function( res ) {
-					if ( !res.data.chatters ) {
+					if ( !_isNode ) { // using JSONP with this API endpoint adds "data" to the object
+						res = res.data;
+					}
+
+					if ( !res.chatters ) {
 						return console.log( 'No response for user list.' );
 					}
-					_currentViewCount = res.data.chatter_count;
+					_currentViewCount = res.chatter_count;
 					// .slice(); is to set by value rather than reference
-					_chatters.moderators = res.data.chatters.moderators.slice();
-					_chatters.staff = res.data.chatters.staff.slice();
-					_chatters.admins = res.data.chatters.admins.slice();
-					_chatters.global_mods = res.data.chatters.global_mods.slice();
-					_chatters.viewers = res.data.chatters.viewers.slice();
+					_chatters.moderators = res.chatters.moderators.slice();
+					_chatters.staff = res.chatters.staff.slice();
+					_chatters.admins = res.chatters.admins.slice();
+					_chatters.global_mods = res.chatters.global_mods.slice();
+					_chatters.viewers = res.chatters.viewers.slice();
 				}
 			);
 
 			setTimeout( function() {
-				document.querySelector( '#twapiJsonpContainer' ).innerHTML = '';
+				if ( !_isNode ) {
+					document.querySelector( '#twapiJsonpContainer' ).innerHTML = '';
+				}
 				_pingAPI();
 			}, _refreshRate * 1000 );
 		}
 
-		function _getSubBadgeUrl(callback) {
+		function _getSubBadgeUrl( callback ) {
 			JSONP(
 				'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3',
 				function( res ) {
@@ -632,30 +702,63 @@
 			);
 		}
 
-		// Utilities
+		TWAPI.listen = function( eventName, callback ) {
+			if ( _events.has( eventName ) ) { // if there are listeners for eventName
+				var value = _events.get( eventName ); // get the current array of callbacks
+				value.push( callback ); // add the new callback
+				_events.set( eventName, value ); // replace the old callback array
+			}
+			else { // if eventName has no listeners
+				_events.set( eventName, [callback] );
+			}
+		};
 
 		function EV( eventName, eventDetail ) {
-			var msgEvent = new CustomEvent( eventName, {
-				"detail" : eventDetail
-			} );
-			document.dispatchEvent( msgEvent );
+			if ( _events.has( eventName ) ) {
+				var callbacks = _events.get( eventName ); // gets an array of callback functions
+				for ( var i in callbacks ) {
+					callbacks[i]( eventDetail ); // runs each and sends them eventDetail as the parameter
+				}
+			}
 		}
 
 		function JSONP( url, callback ) {
-			// Keep trying to make a random callback name until it finds a unique one.
-			var randomCallback;
-			do {
-				randomCallback = 'jsonp' + Math.floor( Math.random() * 1000000 );
-			} while ( window[randomCallback] );
-
-			window[randomCallback] = function( json ) {
-				callback( json );
-				delete window[randomCallback]; // Cleanup the window object
+			if ( _isNode ) { // No JSONP required, so using http.get
+				var http = require( 'https' );
+				http.get( url, function(res) {
+					var output = '';
+					res.setEncoding( 'utf8' );
+					res.on( 'data', function(chunk) {
+						output += chunk;
+					} );
+					res.on( 'end', function() {
+						if ( res.statusCode >= 200 && res.statusCode < 400 ) {
+							callback( JSON.parse( output ) );
+						}
+						else { // error
+							console.error( output );
+						}
+					} );
+				} ).on( 'error', function( e ) {
+					console.error( e.message );
+				} );
 			}
+			else {
+				// Keep trying to make a random callback name until it finds a unique one.
+				var randomCallback;
+				do {
+					randomCallback = 'jsonp' + Math.floor( Math.random() * 1000000 );
+				} while ( window[randomCallback] );
 
-			var node = document.createElement( 'script' );
-			node.src = url + '&callback=' + randomCallback;
-			document.querySelector( '#twapiJsonpContainer' ).appendChild(node);
+				window[randomCallback] = function( json ) {
+					callback( json );
+					delete window[randomCallback]; // Cleanup the window object
+				}
+
+				var node = document.createElement( 'script' );
+				node.src = url + '&callback=' + randomCallback;
+				document.querySelector( '#twapiJsonpContainer' ).appendChild(node);
+			}
 		}
 
 		return TWAPI;
@@ -668,12 +771,21 @@
 	////////////////////////////////////////////////////////////////////////////
 
 
-	// Checking if TWAPI is used as a variable
-	if( typeof(TWAPI) === 'undefined' ) {
-		window.TWAPI = define_TWAPI();
+	if ( typeof module !== 'undefined' && typeof module.exports !== 'undefined' ) { // node.js
+		module.exports = define_TWAPI();
 	}
-	else {
-		console.error( 'TWAPI already defined.' );
+	else if ( typeof define === 'function' && define.amd ) { // require.js
+		define([], function() {
+        	return define_TWAPI();
+      	});
+	}
+	else { // regular js
+		if ( typeof(TWAPI) === 'undefined' ) {
+			window.TWAPI = define_TWAPI();
+		}
+		else {
+			console.error( 'TWAPI already defined.' );
+		}
 	}
 
-} )( window );
+} )();
