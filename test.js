@@ -1,4 +1,4 @@
-var TWAPI = require('./twapi-toNode.js');
+var TWAPI = require('./twapi.js');
 var clientid = ''; // public client id
 var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor
 // channel_commercial (if you want to run commercials), channel_check_subscription (if you want to check subscriber status)
