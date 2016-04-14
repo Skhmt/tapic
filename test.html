@@ -23,43 +23,43 @@
 		} );
 	} );
 	// EventListeners
-	TWAPI.listen('twapiRaw', function( e ) {
+	TWAPI.listen('raw', function( e ) {
 		// You really don't NEED to see raw messages. But you can if you want.
 		// You can also manually parse the raw messages if you don't trust TWAPI.js
 		// writeChat( '* ' + e );
 	} );
-	TWAPI.listen('twapiNotice', function( e ) {
+	TWAPI.listen('notice', function( e ) {
 		writeChat( e );
 	} );
-	TWAPI.listen('twapiJoin', function( e ) {
+	TWAPI.listen('join', function( e ) {
 		writeChat( e + ' has joined.' );
 	} );
-	TWAPI.listen('twapiPart', function( e ) {
+	TWAPI.listen('part', function( e ) {
 		writeChat( e + ' has left the channel.' );
 	} );
-	TWAPI.listen('twapiClearUser', function( e ) {
+	TWAPI.listen('clearUser', function( e ) {
 		writeChat( e + ' has been purged/timed out.' );
 	} );
 
-	TWAPI.listen('twapiClearChat', function( e ) {
+	TWAPI.listen('clearChat', function( e ) {
 		writeChat( 'Chat has been cleared.' );
 	} );
-	TWAPI.listen('twapiHost', function( e ) {
+	TWAPI.listen('host', function( e ) {
 		writeChat( e + ' is hosting you.' );
 	} );
-	TWAPI.listen('twapiFollow', function( e ) {
+	TWAPI.listen('follow', function( e ) {
 		writeChat( e + ' has followed you.' );
 	} );
-	TWAPI.listen('twapiSub', function( e ) {
+	TWAPI.listen('sub', function( e ) {
 		writeChat( e + ' has just subscribed!' );
 	} );
-	TWAPI.listen('twapiSubMonths', function( e ) {
+	TWAPI.listen('subMonths', function( e ) {
 		writeChat( e.name + ' has resubbed ' + e.months + ' times!' );
 	} );
-	TWAPI.listen('twapiSubsAway', function( e ) {
+	TWAPI.listen('subsAway', function( e ) {
 		writeChat( e + ' users have subbed since you have been offline.' );
 	} );
-	TWAPI.listen('twapiRoomstate', function( e ) {
+	TWAPI.listen('roomstate', function( e ) {
 		var output = 'Roomstate options: ';
 		if ( e.lang ) output += ' lang:' + e.lang;
 		if ( e.r9k ) output += ' r9k';
@@ -70,7 +70,7 @@
 		}
 		writeChat( output );
 	} );
-	TWAPI.listen('twapiMsg', function( e ) {
+	TWAPI.listen('message', function( e ) {
 		var output = (e.mod ? '<img src="http://chat-badges.s3.amazonaws.com/mod.png">' : '') +
 			(e.sub  ?'<img src="' + TWAPI.getSubBadgeUrl() + '">' : '') +
 			(e.turbo ? '<img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
@@ -85,7 +85,7 @@
 			// https://github.com/justintv/Twitch-API/blob/master/IRC.md#privmsg
 		writeChat( output );
 	} );
-	TWAPI.listen('twapiWhisper', function( e ) {
+	TWAPI.listen('whisper', function( e ) {
 		var output = (e.turbo ? '<img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
 			'<strong style="color: ' + e.color + ';">' +
 			e.from +
