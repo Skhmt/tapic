@@ -136,6 +136,14 @@
 		console.log( 'getChatters: ' + JSON.stringify( TWAPI.getChatters() ) );
 		// TWAPI.setStatusGame('Making a Twitch Javascript Framework #programming', 'Creative');
 		// TWAPI.closeChat();
+
+		console.log( 'getDisplayName: ' + TWAPI.getDisplayName() );
+		console.log( 'getColor: ' + TWAPI.getColor() );
+		console.log( 'getEmoteSets: ' + TWAPI.getEmoteSets() );
+		console.log( 'getMod: ' + TWAPI.getMod() );
+		console.log( 'getSub: ' + TWAPI.getSub() );
+		console.log( 'getTurbo: ' + TWAPI.getTurbo() );
+		console.log( 'getUserType: ' + TWAPI.getUserType() );
 	}
 	function writeChat(msg) {
 		document.getElementById('chat').innerHTML += msg + '<br>';
