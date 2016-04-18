@@ -1,6 +1,6 @@
 // Twitch Websockets & API in javascript - TWAPI.js
-// Version 2.0
-// Made by skhmt, 2016
+// Version 2.1 - 18 April 2016
+// Made by skhmt - http://skhmt.github.io
 
 // compile/minify at: https://closure-compiler.appspot.com/
 
@@ -35,6 +35,13 @@
 		var _profileBanner = '';
 		var _isNode = false;
 		var _events = new Map();
+		var _userDisplayName = '';
+		var _userColor = '';
+		var _userEmoteSets = '';
+		var _userMod = '';
+		var _userSub = '';
+		var _userTurbo = '';
+		var _userType = '';
 
 		if ( typeof module !== 'undefined' && typeof module.exports !== 'undefined' ) {
 			_isNode = true;
@@ -152,6 +159,13 @@
 			_logo = '';
 			_videoBanner = '';
 			_profileBanner = '';
+			_userDisplayName = '';
+			_userColor = '';
+			_userEmoteSets = '';
+			_userMod = '';
+			_userSub = '';
+			_userTurbo = '';
+			_userType = '';
 		};
 
 		TWAPI.changeChannel = function( channel ) {
@@ -178,6 +192,10 @@
 			_logo = '';
 			_videoBanner = '';
 			_profileBanner = '';
+			_userMod = '';
+			_userSub = '';
+			_userTurbo = '';
+			_userType = '';
 
 			_ws.send( 'JOIN #' + _channel );
 		};
@@ -282,6 +300,41 @@
 		TWAPI.getProfileBanner = function() {
 			if ( !_channel ) return console.error( 'Not in a channel.' );
 			return _profileBanner;
+		};
+
+		TWAPI.getDisplayName = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _userDisplayName;
+		};
+
+		TWAPI.getColor = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _userColor;
+		};
+
+		TWAPI.getEmoteSets = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _userEmoteSets;
+		};
+
+		TWAPI.getMod = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _userMod;
+		};
+
+		TWAPI.getSub = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _userSub;
+		};
+
+		TWAPI.getTurbo = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _userTurbo;
+		};
+
+		TWAPI.getUserType = function() {
+			if ( !_channel ) return console.error( 'Not in a channel.' );
+			return _userType;
 		};
 
 		TWAPI.isFollowing = function( user, channel, callback ) {
@@ -405,7 +458,7 @@
 			var textarray = text.split(' ');
 
 			if ( textarray[2] === 'PRIVMSG' ) { // regular message
-				var command = textarray[0];
+				let command = textarray[0];
 				textarray.splice( 0, 1 );
 				_msgPriv( command, textarray );
 			}
@@ -421,22 +474,22 @@
 			}
 
 			else if ( textarray[1] === 'JOIN' ) {
-				var joinname = textarray[0].split('!')[0].substring(1);
+				let joinname = textarray[0].split('!')[0].substring(1);
 				EV( 'join', joinname );
 			}
 
 			else if ( textarray[1] === 'PART' ) {
 				// :mudb3rt!mudb3rt@mudb3rt.tmi.twitch.tv PART #ultra
-				var partname = textarray[0].split('!')[0].substring(1);
+				let partname = textarray[0].split('!')[0].substring(1);
 				EV( 'part', partname );
 			}
 
 			else if ( textarray[2] === 'ROOMSTATE' ) {
 				// @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #ultra
-				var statearray = textarray[0].substring(1).split(';');
-				var lang, r9k, slow, subs_only;
-				for (var i in statearray) {
-					var stateparam = i.split('=');
+				let statearray = textarray[0].substring(1).split(';');
+				let lang, r9k, slow, subs_only;
+				for (let i in statearray) {
+					let stateparam = i.split('=');
 					if ( stateparam[0] === 'broadcaster-lang' ) lang = stateparam[1];
 					else if ( stateparam[0] === 'r9k' ) r9k = stateparam[1];
 					else if ( stateparam[0] === 'slow' ) slow = stateparam[1];
@@ -456,11 +509,25 @@
 
 			else if ( textarray[1] === 'CLEARCHAT' ) {
 				if ( textarray.length === 4 ) {
-					var clearname = textarray[3].substring(1);
+					let clearname = textarray[3].substring(1);
 					EV( 'clearUser', clearname );
 				}
 				else {
 					EV( 'clearChat');
+				}
+			}
+
+			else if ( textarray[2] === 'USERSTATE' ) {
+				let statearray = textarray[0].substring(1).split(';');
+				for (let i in statearray) {
+					let stateparam = statearray[i].split('=');
+					if ( stateparam[0] === 'color' ) _userColor = stateparam[1];
+					else if ( stateparam[0] === 'display-name' ) _userDisplayName = stateparam[1];
+					else if ( stateparam[0] === 'emote-sets' ) _userEmoteSets = stateparam[1];
+					else if ( stateparam[0] === 'mod' ) _userMod = stateparam[1];
+					else if ( stateparam[0] === 'subscriber' ) _userSub = stateparam[1];
+					else if ( stateparam[0] === 'turbo' ) _userTurbo = stateparam[1];
+					else if ( stateparam[0] === 'user-type' ) _userType = stateparam[1];
 				}
 			}
 
