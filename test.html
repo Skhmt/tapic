@@ -62,10 +62,10 @@
 	TWAPI.listen('roomstate', function( e ) {
 		var output = 'Roomstate options: ';
 		if ( e.lang ) output += ' lang:' + e.lang;
-		if ( e.r9k ) output += ' r9k';
-		if ( e.slow ) output += ' slow';
-		if ( e.subs_only ) output += ' subs-only';
-		if ( !e.lang && !e.r9k && !e.slow && !e.subs_only ) {
+		if ( e.r9k == 1 ) output += ' r9k';
+		if ( e.slow == 1 ) output += ' slow';
+		if ( e.subs_only == 1 ) output += ' subs-only';
+		if ( !e.lang && e.r9k != 1 && e.slow != 1 && e.subs_only != 1 ) {
 			output += ' none.';
 		}
 		writeChat( output );
