@@ -1,11 +1,20 @@
-// Twitch Websockets & API in javascript - TWAPI.js
-// Version 2.1 - 18 April 2016
-// Made by skhmt - http://skhmt.github.io
+/*
+	Twitch Websockets & API in javascript - TWAPI.js
+	Version 2.2 - 19 April 2016
+	Made by skhmt - http://skhmt.github.io
 
-// compile/minify at: https://closure-compiler.appspot.com/
+	Compile/minify at: https://closure-compiler.appspot.com/
+*/
 
+/*jshint
+	esversion: 6,
+	unused: true,
+	undef: true,
+	node: true
+*/
 
 (function() {
+
 	function define_TWAPI() {
 
 		var _refreshRate = 10; // check the Twitch API every [this many] seconds
@@ -45,12 +54,11 @@
 
 		if ( typeof module !== 'undefined' && typeof module.exports !== 'undefined' ) {
 			_isNode = true;
-			console.info('TWAPI is running in Node.js.');
 		}
 
 		TWAPI.setup = function( clientid, oauth, callback ) {
 			if ( !clientid || !oauth ) {
-				console.error( 'Invalid parameters. Usage: TWAPI.setup(clientid, oauth, callback);' );
+				console.error( 'Invalid parameters. Usage: TWAPI.setup(clientid, oauth[, callback]);' );
 			}
 			_clientid = clientid;
 			_oauth = oauth;
@@ -62,7 +70,7 @@
 				document.getElementsByTagName( 'body' )[0].appendChild(node);
 			}
 
-			JSONP(
+			_getJSON(
 				'https://api.twitch.tv/kraken?client_id=' + _clientid + '&oauth_token=' + _oauth + '&api_version=3',
 				function( res ) {
 					_username = res.token.user_name;
@@ -339,7 +347,7 @@
 
 		TWAPI.isFollowing = function( user, channel, callback ) {
 			// https://api.twitch.tv/kraken/users/skhmt/follows/channels/food
-			JSONP(
+			_getJSON(
 				'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel + '?api_version=3&client_id=' + _clientid,
 				function( res ) {
 					if ( res.error ) callback( {
@@ -355,7 +363,7 @@
 
 		TWAPI.isSubscribing = function( user, channel, callback ) {
 			// https://api.twitch.tv/kraken/channels/test_channel/subscriptions/testuser
-			JSONP(
+			_getJSON(
 				'https://api.twitch.tv/kraken/channels/' + channel + '/subscriptions/' + user + '?api_version=3client_id=' + _clientid,
 				function( res ) {
 					if ( res.error ) callback( {
@@ -387,7 +395,7 @@
 					headers: {
 						'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
 					}
-				}
+				};
 				var http = require( 'https' );
 				http.request(options).write( 'length=' + length ).end();
 			}
@@ -454,48 +462,48 @@
 		// Private functions
 
 		function _parseMessage( text ) {
-			EV( 'raw', text );
+			_event( 'raw', text );
 			var textarray = text.split(' ');
 
 			if ( textarray[2] === 'PRIVMSG' ) { // regular message
-				let command = textarray[0];
+				var command = textarray[0];
 				textarray.splice( 0, 1 );
 				_msgPriv( command, textarray );
 			}
 
 			else if ( textarray[1] === 'PRIVMSG' ) { // host notification
-				EV( 'host', textarray[3].substring(1) );
+				_event( 'host', textarray[3].substring(1) );
 			}
 
 			else if ( textarray[2] === 'NOTICE' ) {
 				textarray.splice( 0, 4 );
 				var output = textarray.join(' ').substring(1);
-				EV( 'notice', output );
+				_event( 'notice', output );
 			}
 
 			else if ( textarray[1] === 'JOIN' ) {
-				let joinname = textarray[0].split('!')[0].substring(1);
-				EV( 'join', joinname );
+				var joinname = textarray[0].split('!')[0].substring(1);
+				_event( 'join', joinname );
 			}
 
 			else if ( textarray[1] === 'PART' ) {
 				// :mudb3rt!mudb3rt@mudb3rt.tmi.twitch.tv PART #ultra
-				let partname = textarray[0].split('!')[0].substring(1);
-				EV( 'part', partname );
+				var partname = textarray[0].split('!')[0].substring(1);
+				_event( 'part', partname );
 			}
 
 			else if ( textarray[2] === 'ROOMSTATE' ) {
 				// @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #ultra
-				let statearray = textarray[0].substring(1).split(';');
-				let lang, r9k, slow, subs_only;
-				for (let i in statearray) {
-					let stateparam = i.split('=');
-					if ( stateparam[0] === 'broadcaster-lang' ) lang = stateparam[1];
-					else if ( stateparam[0] === 'r9k' ) r9k = stateparam[1];
-					else if ( stateparam[0] === 'slow' ) slow = stateparam[1];
-					else if ( stateparam[0] === 'subs-only' ) subs_only = stateparam[1];
+				var roomstatearray = textarray[0].substring(1).split(';');
+				var lang, r9k, slow, subs_only;
+				for ( var i = 0; i < roomstatearray.length; i++ ) {
+					var roomstateparams = roomstatearray[i].split('=');
+					if ( roomstateparams[0] === 'broadcaster-lang' ) lang = roomstateparams[1];
+					else if ( roomstateparams[0] === 'r9k' ) r9k = roomstateparams[1];
+					else if ( roomstateparams[0] === 'slow' ) slow = roomstateparams[1];
+					else if ( roomstateparams[0] === 'subs-only' ) subs_only = roomstateparams[1];
 				}
-				EV( 'roomstate', {
+				_event( 'roomstate', {
 					"lang": lang,
 					"r9k": r9k,
 					"slow": slow,
@@ -509,25 +517,25 @@
 
 			else if ( textarray[1] === 'CLEARCHAT' ) {
 				if ( textarray.length === 4 ) {
-					let clearname = textarray[3].substring(1);
-					EV( 'clearUser', clearname );
+					var clearname = textarray[3].substring(1);
+					_event( 'clearUser', clearname );
 				}
 				else {
-					EV( 'clearChat');
+					_event( 'clearChat');
 				}
 			}
 
 			else if ( textarray[2] === 'USERSTATE' ) {
-				let statearray = textarray[0].substring(1).split(';');
-				for (let i in statearray) {
-					let stateparam = statearray[i].split('=');
-					if ( stateparam[0] === 'color' ) _userColor = stateparam[1];
-					else if ( stateparam[0] === 'display-name' ) _userDisplayName = stateparam[1];
-					else if ( stateparam[0] === 'emote-sets' ) _userEmoteSets = stateparam[1];
-					else if ( stateparam[0] === 'mod' ) _userMod = stateparam[1];
-					else if ( stateparam[0] === 'subscriber' ) _userSub = stateparam[1];
-					else if ( stateparam[0] === 'turbo' ) _userTurbo = stateparam[1];
-					else if ( stateparam[0] === 'user-type' ) _userType = stateparam[1];
+				var userstatearray = textarray[0].substring(1).split(';');
+				for ( var j = 0; j < userstatearray.length; j++ ) {
+					var userstateparams = userstatearray[j].split('=');
+					if ( userstateparams[0] === 'color' ) _userColor = userstateparams[1];
+					else if ( userstateparams[0] === 'display-name' ) _userDisplayName = userstateparams[1];
+					else if ( userstateparams[0] === 'emote-sets' ) _userEmoteSets = userstateparams[1];
+					else if ( userstateparams[0] === 'mod' ) _userMod = userstateparams[1];
+					else if ( userstateparams[0] === 'subscriber' ) _userSub = userstateparams[1];
+					else if ( userstateparams[0] === 'turbo' ) _userTurbo = userstateparams[1];
+					else if ( userstateparams[0] === 'user-type' ) _userType = userstateparams[1];
 				}
 			}
 
@@ -557,29 +565,29 @@
 						from = tempParamValue;
 					}
 				}
-				else if ( tempParamName === '@color' && tempParamValue != '' ) {
+				else if ( tempParamName === '@color' && tempParamValue !== '' ) {
 					color = tempParamValue;
 				}
 				else if ( tempParamName === 'turbo' && tempParamValue == '1' ) {
 					turbo = true;
 				}
-				else if ( tempParamName === 'emotes' && tempParamValue != '' ) {
+				else if ( tempParamName === 'emotes' && tempParamValue !== '' ) {
 					emotes = tempParamValue;
 				}
-				else if ( tempParamName === 'message-id' && tempParamValue != '' ) {
+				else if ( tempParamName === 'message-id' && tempParamValue !== '' ) {
 					message_id = tempParamValue;
 				}
-				else if ( tempParamName === 'thread-id' && tempParamValue != '' ) {
+				else if ( tempParamName === 'thread-id' && tempParamValue !== '' ) {
 					thread_id = tempParamValue;
 				}
-				else if ( tempParamName === 'user-id' && tempParamValue != '' ) {
+				else if ( tempParamName === 'user-id' && tempParamValue !== '' ) {
 					user_id = tempParamValue;
 				}
 			}
 
 			var joinedText = textarray.slice(4).join(' ').substring(1);
 
-			EV( 'whisper', {
+			_event( 'whisper', {
 				"from": from,
 				"to": textarray[3],
 				"color": color,
@@ -611,7 +619,7 @@
 						from = tempParamValue;
 					}
 				}
-				else if ( tempParamName === '@color' && tempParamValue != '' ) {
+				else if ( tempParamName === '@color' && tempParamValue !== '' ) {
 					color = tempParamValue;
 				}
 				else if ( tempParamName === 'mod' && tempParamValue == '1' ) {
@@ -623,7 +631,7 @@
 				else if ( tempParamName === 'turbo' && tempParamValue == '1' ) {
 					turbo = true;
 				}
-				else if ( tempParamName === 'emotes' && tempParamValue != '' ) {
+				else if ( tempParamName === 'emotes' && tempParamValue !== '' ) {
 					emotes = tempParamValue;
 				}
 			}
@@ -647,20 +655,20 @@
 			if ( 'from' === 'twitchnotify' ) { // Sub notification
 				var notifyText = text.split(' ');
 				if ( notifyText[1] === 'just' ) { // "[name] just subscribed!"
-					EV( 'sub', notifyText[0] );
+					_event( 'sub', notifyText[0] );
 				}
 				else if ( notifyText[1] === 'subscribed' ) { // "[name] subscribed for 13 months in a row!"
-					EV( 'subMonths', {
+					_event( 'subMonths', {
 						"name": notifyText[0],
 						"months": notifyText[3]
 					} );
 				}
 				else { // "[number] viewers resubscribed while you were away!"
-					EV( 'subsAway', notifyText[0] );
+					_event( 'subsAway', notifyText[0] );
 				}
 			}
 			else {
-				EV( 'message',  {
+				_event( 'message',  {
 					"from": from,
 					"color": color,
 					"mod": mod,
@@ -675,7 +683,7 @@
 		}
 
 		function _pingAPI() {
-			JSONP(
+			_getJSON(
 				'https://api.twitch.tv/kraken/streams/' + _channel + '?client_id=' + _clientid + '&api_version=3',
 				function( res ) {
 					if ( res.stream ) {
@@ -691,7 +699,7 @@
 				}
 			);
 
-			JSONP(
+			_getJSON(
 				'https://api.twitch.tv/kraken/channels/' + _channel + '?client_id=' + _clientid + '&api_version=3',
 				function( res ) {
 					_game = res.game;
@@ -706,7 +714,7 @@
 				}
 			);
 
-			JSONP(
+			_getJSON(
 				'https://api.twitch.tv/kraken/channels/' + _channel + '/follows?client_id=' + _clientid + '&api_version=3&limit=100',
 				function( res ) {
 					// https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
@@ -719,7 +727,7 @@
 						var tempFollower = res.follows[i].user.display_name;
 						if ( _followers.indexOf( tempFollower ) === -1 ) { // if user isn't in _followers
 							if ( !firstUpdate ) {
-								EV( 'follow', tempFollower ); // if it's not the first update, post new follower
+								_event( 'follow', tempFollower ); // if it's not the first update, post new follower
 							}
 							_followers.push( tempFollower ); // add the user to the follower list
 						}
@@ -727,10 +735,10 @@
 				}
 			);
 
-			JSONP(
+			_getJSON(
 				'https://tmi.twitch.tv/group/user/' + _channel + '/chatters?client_id=' + _clientid + '&api_version=3',
 				function( res ) {
-					if ( !_isNode ) { // using JSONP with this API endpoint adds "data" to the object
+					if ( !_isNode ) { // using _getJSON with this API endpoint adds "data" to the object
 						res = res.data;
 					}
 
@@ -756,10 +764,10 @@
 		}
 
 		function _getSubBadgeUrl( callback ) {
-			JSONP(
+			_getJSON(
 				'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3',
 				function( res ) {
-					if ( res.subscriber != null ) {
+					if ( res.subscriber ) {
 						_subBadgeUrl = res.subscriber.image;
 					}
 					if ( callback ) {
@@ -780,17 +788,17 @@
 			}
 		};
 
-		function EV( eventName, eventDetail ) {
+		function _event( eventName, eventDetail ) {
 			if ( _events.has( eventName ) ) {
 				var callbacks = _events.get( eventName ); // gets an array of callback functions
-				for ( var i in callbacks ) {
+				for (var i = 0; i < callbacks.length; i++) {
 					callbacks[i]( eventDetail ); // runs each and sends them eventDetail as the parameter
 				}
 			}
 		}
 
-		function JSONP( url, callback ) {
-			if ( _isNode ) { // No JSONP required, so using http.get
+		function _getJSON( url, callback ) {
+			if ( _isNode ) { // No jsonp required, so using http.get
 				var http = require( 'https' );
 				http.get( url, function(res) {
 					var output = '';
@@ -820,7 +828,7 @@
 				window[randomCallback] = function( json ) {
 					callback( json );
 					delete window[randomCallback]; // Cleanup the window object
-				}
+				};
 
 				var node = document.createElement( 'script' );
 				node.src = url + '&callback=' + randomCallback;
@@ -829,7 +837,7 @@
 		}
 
 		return TWAPI;
-	}
+	} // define_TWAPI()
 
 
 	////////////////////////////////////////////////////////////////////////////
@@ -840,11 +848,6 @@
 
 	if ( typeof module !== 'undefined' && typeof module.exports !== 'undefined' ) { // node.js
 		module.exports = define_TWAPI();
-	}
-	else if ( typeof define === 'function' && define.amd ) { // require.js
-		define([], function() {
-			return define_TWAPI();
-		});
 	}
 	else { // regular js
 		if ( typeof(TWAPI) === 'undefined' ) {
