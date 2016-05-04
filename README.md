@@ -1,5 +1,7 @@
-# twapi.js
-Twitch Websockets &amp; API javascript framework.
+# tapic.js
+Twitch API and Chat in Javascript. 
+
+(Formerly known as TWAPI.js)
 
 This contains more or less everything you'd need from the Twitch API accessed via function calls, with data refreshed every minute.
 This also has twitch chat via websockets, which is accessed via eventListeners.
@@ -11,4 +13,4 @@ This is made for use in a client-side website, no server required. Use cases are
 
 This was written entirely in Javascript and has no dependencies besides a relatively up-to-date browser.
 
-Compile for a minified version at `http://closure-compiler.appspot.com/home` or use it from `skhmt.github.io/twapi/twapi.min.js`
+Compile for a minified version at `http://closure-compiler.appspot.com/home`
