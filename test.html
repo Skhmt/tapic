@@ -1,6 +1,6 @@
 <html>
 <head>
-	<script src="twapi.js"></script>
+	<script src="tapic.js"></script>
 </head>
 <body>
 
@@ -14,52 +14,52 @@
 	var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor
 	// channel_commercial (if you want to run commercials), channel_check_subscription (if you want to check subscriber status)
 	// Do this first
-	TWAPI.setup( clientid, oauth, function( username ) {
+	TAPIC.setup( clientid, oauth, function( username ) {
 		// This is also required for a lot of things to work
 		var channel = username;
-		TWAPI.runChat( channel, function() {
+		TAPIC.runChat( channel, function() {
 			// Run test functions after joining a chat
 			tests();
 		} );
 	} );
 	// EventListeners
-	TWAPI.listen('raw', function( e ) {
+	TAPIC.listen('raw', function( e ) {
 		// You really don't NEED to see raw messages. But you can if you want.
-		// You can also manually parse the raw messages if you don't trust TWAPI.js
+		// You can also manually parse the raw messages if you don't trust TAPIC.js
 		// writeChat( '* ' + e );
 	} );
-	TWAPI.listen('notice', function( e ) {
+	TAPIC.listen('notice', function( e ) {
 		writeChat( e );
 	} );
-	TWAPI.listen('join', function( e ) {
+	TAPIC.listen('join', function( e ) {
 		writeChat( e + ' has joined.' );
 	} );
-	TWAPI.listen('part', function( e ) {
+	TAPIC.listen('part', function( e ) {
 		writeChat( e + ' has left the channel.' );
 	} );
-	TWAPI.listen('clearUser', function( e ) {
+	TAPIC.listen('clearUser', function( e ) {
 		writeChat( e + ' has been purged/timed out.' );
 	} );
 
-	TWAPI.listen('clearChat', function( e ) {
+	TAPIC.listen('clearChat', function( e ) {
 		writeChat( 'Chat has been cleared.' );
 	} );
-	TWAPI.listen('host', function( e ) {
+	TAPIC.listen('host', function( e ) {
 		writeChat( e + ' is hosting you.' );
 	} );
-	TWAPI.listen('follow', function( e ) {
+	TAPIC.listen('follow', function( e ) {
 		writeChat( e + ' has followed you.' );
 	} );
-	TWAPI.listen('sub', function( e ) {
+	TAPIC.listen('sub', function( e ) {
 		writeChat( e + ' has just subscribed!' );
 	} );
-	TWAPI.listen('subMonths', function( e ) {
+	TAPIC.listen('subMonths', function( e ) {
 		writeChat( e.name + ' has resubbed ' + e.months + ' times!' );
 	} );
-	TWAPI.listen('subsAway', function( e ) {
+	TAPIC.listen('subsAway', function( e ) {
 		writeChat( e + ' users have subbed since you have been offline.' );
 	} );
-	TWAPI.listen('roomstate', function( e ) {
+	TAPIC.listen('roomstate', function( e ) {
 		var output = 'Roomstate options: ';
 		if ( e.lang ) output += ' lang:' + e.lang;
 		if ( e.r9k == 1 ) output += ' r9k';
@@ -70,9 +70,9 @@
 		}
 		writeChat( output );
 	} );
-	TWAPI.listen('message', function( e ) {
+	TAPIC.listen('message', function( e ) {
 		var output = (e.mod ? '<img src="http://chat-badges.s3.amazonaws.com/mod.png">' : '') +
-			(e.sub  ?'<img src="' + TWAPI.getSubBadgeUrl() + '">' : '') +
+			(e.sub  ?'<img src="' + TAPIC.getSubBadgeUrl() + '">' : '') +
 			(e.turbo ? '<img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
 			(e.streamer ? '<img src="http://chat-badges.s3.amazonaws.com/broadcaster.png">' : '') +
 			'<strong style="color: ' + e.color + ';">' +
@@ -85,7 +85,7 @@
 			// https://github.com/justintv/Twitch-API/blob/master/IRC.md#privmsg
 		writeChat( output );
 	} );
-	TWAPI.listen('whisper', function( e ) {
+	TAPIC.listen('whisper', function( e ) {
 		var output = (e.turbo ? '<img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
 			'<strong style="color: ' + e.color + ';">' +
 			e.from +
@@ -97,53 +97,63 @@
 		// When using whispers for a bot, be sure to whitelist it: https://discuss.dev.twitch.tv/t/are-your-whispers-not-going-through-for-your-bot/5183/3
 		writeChat( output );
 	} );
+	TAPIC.listen('echoChat', function( e ) {
+		var output = '<strong style="color: ' + TAPIC.getColor() + ';">' + TAPIC.getDisplayName() +
+			'</strong> : ' + e;
+		writeChat( output );
+	} );
+	TAPIC.listen('echoWhisper', function( e ) {
+		var output = '<strong style="color: ' + TAPIC.getColor() + ';">' + TAPIC.getDisplayName() +
+			'</strong> &gt; <strong> ' + e.to + '</strong> : ' + e.text;
+		writeChat( output );
+	} );
 	// Utility functions
 	function tests() {
-		// TWAPI.sendChat( 'Hello world!' );
-		// TWAPI.sendWhisper( 'littlecatbot', 'Hello whisper!' );
-		// TWAPI.changeChannel( 'letsmakefriends' );
-		console.log( 'getUsername: ' + TWAPI.getUsername() );
-		console.log( 'getChannel: ' + TWAPI.getChannel() );
-		console.log( 'getGame: ' + TWAPI.getGame() );
-		console.log( 'getStatus: ' + TWAPI.getStatus() );
-		console.log( 'getFollowerCount: ' + TWAPI.getFollowerCount() );
-		console.log( 'getTotalViewCount: ' + TWAPI.getTotalViewCount() );
-		console.log( 'getCurrentViewCount: ' + TWAPI.getCurrentViewCount() );
-		console.log( 'getCreatedAt: ' + TWAPI.getCreatedAt() );
-		console.log( 'getLogo: ' + TWAPI.getLogo() );
-		console.log( 'getVideoBanner: ' + TWAPI.getVideoBanner() );
-		console.log( 'getProfileBanner: ' + TWAPI.getProfileBanner() );
+		// TAPIC.sendChat( 'Hello world!' );
+		// TAPIC.sendWhisper( 'littlecatbot', 'Hello whisper!' );
+		// TAPIC.changeChannel( 'letsmakefriends' );
+		console.log( 'getUsername: ' + TAPIC.getUsername() );
+		console.log( 'getChannel: ' + TAPIC.getChannel() );
+		console.log( 'getGame: ' + TAPIC.getGame() );
+		console.log( 'getStatus: ' + TAPIC.getStatus() );
+		console.log( 'getFollowerCount: ' + TAPIC.getFollowerCount() );
+		console.log( 'getTotalViewCount: ' + TAPIC.getTotalViewCount() );
+		console.log( 'getCurrentViewCount: ' + TAPIC.getCurrentViewCount() );
+		console.log( 'getCreatedAt: ' + TAPIC.getCreatedAt() );
+		console.log( 'getLogo: ' + TAPIC.getLogo() );
+		console.log( 'getVideoBanner: ' + TAPIC.getVideoBanner() );
+		console.log( 'getProfileBanner: ' + TAPIC.getProfileBanner() );
 		var folUser = 'skhmt';
 		var folTarget = 'letsmakefriends';
-		TWAPI.isFollowing( folUser, folTarget, function( res ) {
+		TAPIC.isFollowing( folUser, folTarget, function( res ) {
 			if ( res.isFollowing ) console.log( folUser + ' has been following ' + folTarget + ' since: ' + res.dateFollowed );
 			else console.log( folUser + ' is not following ' + folTarget + '.' );
 		} );
 		// // Requires 'channel_check_subscription'
 		// var subUser = 'skhmt';
 		// var subChannel = 'letsmakefriends';
-		// TWAPI.isSubscribing( subUser, subChannel, function( res ) {
+		// TAPIC.isSubscribing( subUser, subChannel, function( res ) {
 		// 	if ( res.isSubscribing ) console.log( subUser + ' has been subbed to ' + subChannel + ' since: ' + res.dateSubscribed );
 		// 	else console.log( subUser + ' is not subbed to ' + subChannel + '.' );
 		// } );
-		console.log( 'isPartner: ' + TWAPI.isPartner() );
-		console.log( 'getSubBadgeUrl: ' + TWAPI.getSubBadgeUrl() );
-		// TWAPI.runCommercial('30'); // requires 'channel_commercial'
-		console.log( 'isOnline: ' + TWAPI.isOnline() );
-		console.log( 'getFps: ' + TWAPI.getFps() );
-		console.log( 'getVideoHeight: ' + TWAPI.getVideoHeight() );
-		console.log( 'getDelay: ' + TWAPI.getDelay() );
-		console.log( 'getChatters: ' + JSON.stringify( TWAPI.getChatters() ) );
-		// TWAPI.setStatusGame('Making a Twitch Javascript Framework #programming', 'Creative');
-		// TWAPI.closeChat();
+		console.log( 'isPartner: ' + TAPIC.isPartner() );
+		console.log( 'getSubBadgeUrl: ' + TAPIC.getSubBadgeUrl() );
+		// TAPIC.runCommercial('30'); // requires 'channel_commercial'
+		console.log( 'isOnline: ' + TAPIC.isOnline() );
+		console.log( 'getFps: ' + TAPIC.getFps() );
+		console.log( 'getVideoHeight: ' + TAPIC.getVideoHeight() );
+		console.log( 'getDelay: ' + TAPIC.getDelay() );
+		console.log( 'getChatters: ' + JSON.stringify( TAPIC.getChatters() ) );
+		// TAPIC.setStatusGame('Making a Twitch Javascript Framework #programming', 'Creative');
+		// TAPIC.closeChat();
 
-		console.log( 'getDisplayName: ' + TWAPI.getDisplayName() );
-		console.log( 'getColor: ' + TWAPI.getColor() );
-		console.log( 'getEmoteSets: ' + TWAPI.getEmoteSets() );
-		console.log( 'getMod: ' + TWAPI.getMod() );
-		console.log( 'getSub: ' + TWAPI.getSub() );
-		console.log( 'getTurbo: ' + TWAPI.getTurbo() );
-		console.log( 'getUserType: ' + TWAPI.getUserType() );
+		console.log( 'getDisplayName: ' + TAPIC.getDisplayName() );
+		console.log( 'getColor: ' + TAPIC.getColor() );
+		console.log( 'getEmoteSets: ' + TAPIC.getEmoteSets() );
+		console.log( 'getMod: ' + TAPIC.getMod() );
+		console.log( 'getSub: ' + TAPIC.getSub() );
+		console.log( 'getTurbo: ' + TAPIC.getTurbo() );
+		console.log( 'getUserType: ' + TAPIC.getUserType() );
 	}
 	function writeChat(msg) {
 		document.getElementById('chat').innerHTML += msg + '<br>';
