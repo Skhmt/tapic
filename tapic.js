@@ -1,6 +1,6 @@
 /*
 	Twitch API & Chat in javascript - TAPIC.js
-	Version 2.3 - 4 May 2016
+	Version 2.4 - 9 May 2016
 	Made by skhmt - http://skhmt.github.io
 
 	Compile/minify at: https://closure-compiler.appspot.com/
@@ -95,10 +95,10 @@
 
 			if ( _isNode ) {
 				var WS = require( 'ws' );
-				_ws = new WS( 'ws://irc-ws.chat.twitch.tv:80' );
+				_ws = new WS( 'wss://irc-ws.chat.twitch.tv:443' );
 			}
 			else {
-				_ws = new WebSocket( 'ws://irc-ws.chat.twitch.tv:80' );
+				_ws = new WebSocket( 'wss://irc-ws.chat.twitch.tv:443' );
 			}
 			function wsOpen() {
 				_ws.send( 'CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership' );
@@ -771,7 +771,7 @@
 
 		function _getSubBadgeUrl( callback ) {
 			_getJSON(
-				'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3',
+				'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3&client_id=' + _clientid,
 				function( res ) {
 					if ( res.subscriber ) {
 						_subBadgeUrl = res.subscriber.image;
