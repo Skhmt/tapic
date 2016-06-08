@@ -1,6 +1,6 @@
 /*
   Twitch API & Chat in javascript - TAPIC.js
-  Version 2.5 - 3 Jun 2016
+  Version 2.6 - 8 Jun 2016
   Made by skhmt - http://skhmt.github.io
 
   Compile/minify at: https://closure-compiler.appspot.com/
@@ -63,6 +63,8 @@
       }
       _clientid = clientid;
       _oauth = oauth;
+
+      _oauth.replace('oauth:', '');
 
       if (!_isNode) { // node.js doesn't have a DOM
         var node = document.createElement('div');
@@ -514,16 +516,30 @@
       } else if (textarray[2] === 'WHISPER') {
         _msgWhisper(textarray);
       } else if (textarray[1] === 'CLEARCHAT') {
-        if (textarray.length === 4) {
-          var clearname = textarray[3].substring(1);
-          _event('clearUser', clearname);
-        } else {
-          _event('clearChat');
+        _event('clearChat');
+      } else if (textarray[2] === 'CLEARCHAT') {
+        var clearinfoarray = textarray[0].slice(1).split(';'); // remove leading '@' and split
+        var banreason = '';
+        var banduration = 1;
+        for (var j = 0; j < clearinfoarray.length; j++) {
+          var clearinfoparams = clearinfoarray[j].split('=');
+          if (clearinfoparams[0] === 'ban-duration') {
+            banduration = clearinfoparams[1];
+          } else if (clearinfoparams[0] === 'ban-reason') {
+            banreason = clearinfoparams[1].replace(/\\s/g, ' ');
+          }
         }
+        var clearname = textarray[4].slice(1); // remove leading ':'
+        _event('clearUser', {
+          "name": clearname,
+          "reason": banreason,
+          "duration": banduration
+        });
+
       } else if (textarray[2] === 'USERSTATE') {
         var userstatearray = textarray[0].substring(1).split(';');
-        for (var j = 0; j < userstatearray.length; j++) {
-          var userstateparams = userstatearray[j].split('=');
+        for (var k = 0; k < userstatearray.length; k++) {
+          var userstateparams = userstatearray[k].split('=');
           if (userstateparams[0] === 'color') _userColor = userstateparams[1];
           else if (userstateparams[0] === 'display-name') _userDisplayName = userstateparams[1];
           else if (userstateparams[0] === 'emote-sets') _userEmoteSets = userstateparams[1];
@@ -545,7 +561,9 @@
       var message_id = '';
       var thread_id = '';
       var user_id = '';
-      var commands = textarray[0].split(';');
+      var badges = [];
+
+      var commands = textarray[0].slice(1).split(';');
 
       for (var i = 0; i < commands.length; i++) {
         commands[i] = commands[i].split('=');
@@ -557,7 +575,7 @@
           } else {
             from = tempParamValue;
           }
-        } else if (tempParamName === '@color' && tempParamValue !== '') {
+        } else if (tempParamName === 'color' && tempParamValue !== '') {
           color = tempParamValue;
         } else if (tempParamName === 'turbo' && tempParamValue == '1') {
           turbo = true;
@@ -569,6 +587,8 @@
           thread_id = tempParamValue;
         } else if (tempParamName === 'user-id' && tempParamValue !== '') {
           user_id = tempParamValue;
+        } else if (tempParamName == 'badges') {
+          badges = tempParamValue.split(',');
         }
       }
 
@@ -583,18 +603,24 @@
         "message_id": message_id,
         "thread_id": thread_id,
         "user_id": user_id,
-        "text": joinedText
+        "text": joinedText,
+        "badges": badges
       });
     }
 
     function _msgPriv(command, args) {
-      var commands = command.split(';');
+      // remove starting '@' then split it up into individual commands
+      var commands = command.slice(1).split(';');
+
       var color = '#d2691e';
       var mod = false;
       var subscriber = false;
       var turbo = false;
       var from = '';
       var emotes = '';
+      var badges = [];
+      var room_id = '';
+      var user_id = '';
       for (var i = 0; i < commands.length; i++) {
         commands[i] = commands[i].split('=');
         var tempParamName = commands[i][0];
@@ -605,7 +631,7 @@
           } else {
             from = tempParamValue;
           }
-        } else if (tempParamName === '@color' && tempParamValue !== '') {
+        } else if (tempParamName === 'color' && tempParamValue !== '') {
           color = tempParamValue;
         } else if (tempParamName === 'mod' && tempParamValue == '1') {
           mod = true;
@@ -615,6 +641,12 @@
           turbo = true;
         } else if (tempParamName === 'emotes' && tempParamValue !== '') {
           emotes = tempParamValue;
+        } else if (tempParamName === 'badges') {
+          badges = tempParamValue.split(',');
+        } else if (tempParamName === 'room-id') {
+          room_id = tempParamValue;
+        } else if (tempParamName === 'user-id') {
+          user_id = tempParamValue;
         }
       }
 
@@ -655,7 +687,10 @@
           "streamer": (from.toLowerCase() === _channel.toLowerCase()),
           "action": action,
           "text": output,
-          "emotes": emotes
+          "emotes": emotes,
+          "badges": badges,
+          "room_id": room_id,
+          "user_id": user_id
         });
       }
     }
