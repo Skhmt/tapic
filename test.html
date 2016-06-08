@@ -27,6 +27,7 @@
 		// You really don't NEED to see raw messages. But you can if you want.
 		// You can also manually parse the raw messages if you don't trust TAPIC.js
 		// writeChat( '* ' + e );
+    console.info(e);
 	} );
 	TAPIC.listen('notice', function( e ) {
 		writeChat( e );
@@ -38,7 +39,8 @@
 		writeChat( e + ' has left the channel.' );
 	} );
 	TAPIC.listen('clearUser', function( e ) {
-		writeChat( e + ' has been purged/timed out.' );
+		writeChat( e.name + ' has been timed out for '
+    + e.duration + 's. Reason: ' + e.reason  );
 	} );
 
 	TAPIC.listen('clearChat', function( e ) {
@@ -83,6 +85,7 @@
 			(e.action ? '</span>' : '' );
 			// e.emotes is the emotes, e.g. '25:0-4,12-16/1902:6-10'
 			// https://github.com/justintv/Twitch-API/blob/master/IRC.md#privmsg
+      // e.badges is an array of badges: https://discuss.dev.twitch.tv/t/beta-badge-api/6388
 		writeChat( output );
 	} );
 	TAPIC.listen('whisper', function( e ) {
