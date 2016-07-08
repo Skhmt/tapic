@@ -1,6 +1,6 @@
 /*
   Twitch API & Chat in javascript - TAPIC.js
-  Version 2.6 - 8 Jun 2016
+  Version 2.7 - 8 July 2016
   Made by skhmt - http://skhmt.github.io
 
   Compile/minify at: https://closure-compiler.appspot.com/
@@ -62,9 +62,7 @@
         return;
       }
       _clientid = clientid;
-      _oauth = oauth;
-
-      _oauth.replace('oauth:', '');
+      _oauth = oauth.replace('oauth:', '');
 
       if (!_isNode) { // node.js doesn't have a DOM
         var node = document.createElement('div');
@@ -475,14 +473,27 @@
 
     // Private functions
 
+    function _parseTags(tagString) {
+      var output = new Map();
+
+      // remove leading '@' then split by ';'
+      var tagArray = tagString.substring(1).split(';');
+
+      // add to map
+      for (var p = 0; p < tagArray.length; p++) {
+        var option = tagArray[p].split('=');
+        output.set(option[0], option[1]);
+      }
+
+      return output;
+    }
+
     function _parseMessage(text) {
       _event('raw', text);
       var textarray = text.split(' ');
 
       if (textarray[2] === 'PRIVMSG') { // regular message
-        var command = textarray[0];
-        textarray.splice(0, 1);
-        _msgPriv(command, textarray);
+        _msgPriv(textarray);
       } else if (textarray[1] === 'PRIVMSG') { // host notification
         _event('host', textarray[3].substring(1));
       } else if (textarray[2] === 'NOTICE') {
@@ -498,20 +509,12 @@
         _event('part', partname);
       } else if (textarray[2] === 'ROOMSTATE') {
         // @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #ultra
-        var roomstatearray = textarray[0].substring(1).split(';');
-        var lang, r9k, slow, subs_only;
-        for (var i = 0; i < roomstatearray.length; i++) {
-          var roomstateparams = roomstatearray[i].split('=');
-          if (roomstateparams[0] === 'broadcaster-lang') lang = roomstateparams[1];
-          else if (roomstateparams[0] === 'r9k') r9k = roomstateparams[1];
-          else if (roomstateparams[0] === 'slow') slow = roomstateparams[1];
-          else if (roomstateparams[0] === 'subs-only') subs_only = roomstateparams[1];
-        }
+        var roomstateTags = _parseTags(textarray[0]);
         _event('roomstate', {
-          "lang": lang,
-          "r9k": r9k,
-          "slow": slow,
-          "subs_only": subs_only
+          "lang": roomstateTags.get('broadcaster-lang'),
+          "r9k": roomstateTags.get('r9k'),
+          "slow": roomstateTags.get('slow'),
+          "subs_only": roomstateTags.get('subs-only')
         });
       } else if (textarray[2] === 'WHISPER') {
         _msgWhisper(textarray);
@@ -537,163 +540,101 @@
         });
 
       } else if (textarray[2] === 'USERSTATE') {
-        var userstatearray = textarray[0].substring(1).split(';');
-        for (var k = 0; k < userstatearray.length; k++) {
-          var userstateparams = userstatearray[k].split('=');
-          if (userstateparams[0] === 'color') _userColor = userstateparams[1];
-          else if (userstateparams[0] === 'display-name') _userDisplayName = userstateparams[1];
-          else if (userstateparams[0] === 'emote-sets') _userEmoteSets = userstateparams[1];
-          else if (userstateparams[0] === 'mod') _userMod = userstateparams[1];
-          else if (userstateparams[0] === 'subscriber') _userSub = userstateparams[1];
-          else if (userstateparams[0] === 'turbo') _userTurbo = userstateparams[1];
-          else if (userstateparams[0] === 'user-type') _userType = userstateparams[1];
-        }
+        var userstateTags = _parseTags(textarray[0]);
+        _userColor = userstateTags.get('color');
+        _userDisplayName = userstateTags.get('display-name');
+        _userEmoteSets = userstateTags.get('emote-sets');
+        _userMod = userstateTags.get('mod');
+        _userSub = userstateTags.get('subscriber');
+        _userTurbo = userstateTags.get('turbo');
+        _userType = userstateTags.get('user-type');
+      } else if (textarray[2] === 'USERNOTICE') {
+        var usernoticeParams = _parseTags(textarray[0]);
+
+        var joinedText = textarray.slice(4).join(' ').substring(1);
+
+        _event('subMonths', {
+          "name": usernoticeParams.get('display-name'),
+          "months": usernoticeParams.get('msg-param-months'),
+          "message": joinedText
+        });
       } else {
         // if ( text ) console.info( text );
       }
     }
 
     function _msgWhisper(textarray) {
-      var color = '#d2691e';
-      var emotes = '';
-      var turbo = false;
-      var from = '';
-      var message_id = '';
-      var thread_id = '';
-      var user_id = '';
-      var badges = [];
+      var whisperTags = _parseTags(textarray[0]);
 
-      var commands = textarray[0].slice(1).split(';');
-
-      for (var i = 0; i < commands.length; i++) {
-        commands[i] = commands[i].split('=');
-        var tempParamName = commands[i][0];
-        var tempParamValue = commands[i][1];
-        if (tempParamName === 'display-name') {
-          if (tempParamValue === '') { // some people don't have a display-name, so getting it from somewhere else as a backup
-            from = textarray[1].split('!')[0].substring(1);
-          } else {
-            from = tempParamValue;
-          }
-        } else if (tempParamName === 'color' && tempParamValue !== '') {
-          color = tempParamValue;
-        } else if (tempParamName === 'turbo' && tempParamValue == '1') {
-          turbo = true;
-        } else if (tempParamName === 'emotes' && tempParamValue !== '') {
-          emotes = tempParamValue;
-        } else if (tempParamName === 'message-id' && tempParamValue !== '') {
-          message_id = tempParamValue;
-        } else if (tempParamName === 'thread-id' && tempParamValue !== '') {
-          thread_id = tempParamValue;
-        } else if (tempParamName === 'user-id' && tempParamValue !== '') {
-          user_id = tempParamValue;
-        } else if (tempParamName == 'badges') {
-          badges = tempParamValue.split(',');
-        }
+      // some people don't have a display-name, so getting it from somewhere else as a backup
+      if (!whisperTags.get('display-name')) {
+        whisperTags.set('display-name', textarray[1].split('!')[0].substring(1));
       }
+
+      if (!whisperTags.get('color')) {
+        whisperTags.set('color', '#d2691e');
+      }
+
+      whisperTags.set('badges', whisperTags.get('badges').split(','));
 
       var joinedText = textarray.slice(4).join(' ').substring(1);
 
       _event('whisper', {
-        "from": from,
+        "from": whisperTags.get('display-name'),
         "to": textarray[3],
-        "color": color,
-        "emotes": emotes,
-        "turbo": turbo,
-        "message_id": message_id,
-        "thread_id": thread_id,
-        "user_id": user_id,
+        "color": whisperTags.get('color'),
+        "emotes": whisperTags.get('emotes'),
+        "turbo": whisperTags.get('turbo'),
+        "message_id": whisperTags.get('message-id'),
+        "thread_id": whisperTags.get('thread-id'),
+        "user_id": whisperTags.get('user-id'),
         "text": joinedText,
-        "badges": badges
+        "badges": whisperTags.get('badges')
       });
     }
 
-    function _msgPriv(command, args) {
-      // remove starting '@' then split it up into individual commands
-      var commands = command.slice(1).split(';');
+    function _msgPriv(textarray) {
+      var msgTags = _parseTags(textarray[0]);
 
-      var color = '#d2691e';
-      var mod = false;
-      var subscriber = false;
-      var turbo = false;
-      var from = '';
-      var emotes = '';
-      var badges = [];
-      var room_id = '';
-      var user_id = '';
-      for (var i = 0; i < commands.length; i++) {
-        commands[i] = commands[i].split('=');
-        var tempParamName = commands[i][0];
-        var tempParamValue = commands[i][1];
-        if (tempParamName === 'display-name') {
-          if (tempParamValue === '') { // some people don't have a display-name, so getting it from somewhere else as a backup
-            from = args[0].split('!')[0].substring(1);
-          } else {
-            from = tempParamValue;
-          }
-        } else if (tempParamName === 'color' && tempParamValue !== '') {
-          color = tempParamValue;
-        } else if (tempParamName === 'mod' && tempParamValue == '1') {
-          mod = true;
-        } else if (tempParamName === 'subscriber' && tempParamValue == '1') {
-          subscriber = true;
-        } else if (tempParamName === 'turbo' && tempParamValue == '1') {
-          turbo = true;
-        } else if (tempParamName === 'emotes' && tempParamValue !== '') {
-          emotes = tempParamValue;
-        } else if (tempParamName === 'badges') {
-          badges = tempParamValue.split(',');
-        } else if (tempParamName === 'room-id') {
-          room_id = tempParamValue;
-        } else if (tempParamName === 'user-id') {
-          user_id = tempParamValue;
-        }
-      }
+      if (!msgTags.get('display-name')) msgTags.set('display-name', textarray[1].split('!')[0].substring(1));
+
+      if (!msgTags.get('color')) msgTags.set('color', '#d2691e');
+
+      msgTags.set('badges', msgTags.get('badges').split(','));
 
       var action = false;
-      var text = args[3].substring(1); // first word, removed the colon
-      args.splice(0, 4);
-      var lessargs = args.join(' '); // all other words
-      // ACTION:
-      // Command: @color=#1E90FF;display-name=Skhmt;emotes=;subscriber=0;turbo=0;user-id=71619374;user-type=
-      // Args 0: skhmt!skhmt@skhmt.tmi.twitch.tv PRIVMSG #skhmt :ACTION does things
-      if (text === '\001ACTION') {
-        text = lessargs; // text is now all words after "ACTION"
+      var text = textarray.slice(4);
+      text[0] = text[0].substring(1); // removing colon
+      if (text[0] === '\001ACTION') {
+        text = text.slice(1); // remove the word 'ACTION'
         action = true;
-      } else { // not an action
-        text += ' ' + lessargs; // text is merged with lessargs to make up the entire text string
       }
-      var output = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      var joinedText = text.join(' ').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-      if ('from' === 'twitchnotify') { // Sub notification
-        var notifyText = text.split(' ');
-        if (notifyText[1] === 'just') { // "[name] just subscribed!"
-          _event('sub', notifyText[0]);
-        } else if (notifyText[1] === 'subscribed') { // "[name] subscribed for 13 months in a row!"
-          _event('subMonths', {
-            "name": notifyText[0],
-            "months": notifyText[3]
-          });
+      if (msgTags.get('display-name') === 'twitchnotify') { // sub notification
+        if (text[1] === 'just') { // "[name] just subscribed!"
+          _event('sub', text[0]);
         } else { // "[number] viewers resubscribed while you were away!"
-          _event('subsAway', notifyText[0]);
+          _event('subsAway', text[0]);
         }
-      } else {
-        _event('message', {
-          "from": from,
-          "color": color,
-          "mod": mod,
-          "sub": subscriber,
-          "turbo": turbo,
-          "streamer": (from.toLowerCase() === _channel.toLowerCase()),
+      } else { // regular message
+        _event("message", {
+          "from": msgTags.get('display-name'),
+          "color": msgTags.get('color'),
+          "mod": (msgTags.get('mod') == 1),
+          "sub": (msgTags.get('subscriber') == 1),
+          "turbo": (msgTags.get('turbo') == 1),
+          "streamer": (msgTags.get('display-name').toLowerCase() === _channel.toLowerCase()),
           "action": action,
-          "text": output,
-          "emotes": emotes,
-          "badges": badges,
-          "room_id": room_id,
-          "user_id": user_id
+          "text": joinedText,
+          "emotes": msgTags.get('emotes'),
+          "badges": msgTags.get('badges'),
+          "room_id": msgTags.get('room-id'),
+          "user_id": msgTags.get('user-id')
         });
       }
     }
+
 
     function _pingAPI() {
       _getJSON(
@@ -838,6 +779,10 @@
       }
     };
 
+    TAPIC.emit = function(eventName, eventDetail) {
+      _event(eventName, eventDetail);
+    };
+
     function _event(eventName, eventDetail) {
       if (_events.has(eventName)) {
         var callbacks = _events.get(eventName); // gets an array of callback functions
@@ -856,8 +801,30 @@
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
 
+  // Map shim
+  if (typeof(Map) !== 'function') {
+    window.Map = function () {
+      var keys = [];
+      var values = [];
+      var pub = {};
+      pub.get = function (key) {
+        return values[keys.indexOf(key)];
+      };
+      pub.set = function(key, value) {
+        var index = keys.indexOf(key);
+        if (index == -1) {
+          keys.push(key);
+          values.push(value);
+        } else {
+          values[index] = value;
+        }
+      };
+      return pub; // return
+    }; // window.Map
+  }
 
-  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') { // node.js
+  // exporting if node, defining as a function if browser JS
+  if (typeof(module) !== 'undefined' && typeof(module.exports) !== 'undefined') { // node.js
     module.exports = define_TAPIC();
   } else { // regular js
     if (typeof(TAPIC) === 'undefined') {
