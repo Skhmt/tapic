@@ -1,6 +1,6 @@
 // See test.html for more complete tests. This is just a simple node.js example
 
-var TAPIC = require('./tapic.js');
+var TAPIC = require('tapic');
 var clientid = ''; // public client id
 var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor
 
