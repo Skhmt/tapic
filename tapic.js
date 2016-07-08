@@ -1,6 +1,6 @@
 /*
   Twitch API & Chat in javascript - TAPIC.js
-  Version 2.7 - 8 July 2016
+  Version 2.7.0 - 8 July 2016
   Made by skhmt - http://skhmt.github.io
 
   Compile/minify at: https://closure-compiler.appspot.com/
