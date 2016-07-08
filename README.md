@@ -9,7 +9,9 @@ This also has twitch chat via websockets, which is accessed via eventListeners.
 See test.html for examples on every part of tapic.js. Open up the console (F12 or ctrl-shift-i) to see the test outputs.
 You will need to put in a client id and oauth token in test.html for it to work. 
 
-This is made for use in a client-side website, no server required. Use cases are basically: CLR/BrowserSource on OBS, client-side websites, Electron, and NW.js. It will work in Node.js if you also ``npm install ws``.
+This is made for use in a client-side app, no server required. Use cases are basically: CLR/BrowserSource on OBS, client-side websites, Electron, and NW.js.
+
+It will work in Node.js: ``npm install tapic``.
 
 This was written entirely in Javascript and has no dependencies besides ``ws`` when used in node or a relatively up-to-date browser.
 
