@@ -1,6 +1,6 @@
 /*
   Twitch API & Chat in javascript - TAPIC.js
-  Version 2.7.0 - 8 July 2016
+  Version 2.7.1 - 8 July 2016
   Made by skhmt - http://skhmt.github.io
 
   Compile/minify at: https://closure-compiler.appspot.com/
@@ -801,25 +801,30 @@
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
 
-  // Map shim
+  // Map shim for IE9+
   if (typeof(Map) !== 'function') {
     window.Map = function () {
-      var keys = [];
-      var values = [];
-      var pub = {};
-      pub.get = function (key) {
-        return values[keys.indexOf(key)];
+      var _dict = Object.create(null);
+      
+      var map = {};
+
+      map.size = 0;
+      map.get = function (key) {
+        return _dict[key];
       };
-      pub.set = function(key, value) {
-        var index = keys.indexOf(key);
-        if (index == -1) {
-          keys.push(key);
-          values.push(value);
-        } else {
-          values[index] = value;
-        }
+      map.set = function (key, value) {
+        _dict[key] = value;
+        map.size++;  
       };
-      return pub; // return
+      map.has = function (key) {
+        return !!_dict[key];
+      };
+      map.clear = function () {
+        _dict = Object.create(null);
+        map.size = 0;
+      };
+      
+      return map; // return
     }; // window.Map
   }
 
