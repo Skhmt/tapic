@@ -754,7 +754,7 @@
         // Keep trying to make a random callback name until it finds a unique one.
         var randomCallback;
         do {
-          randomCallback = 'tapicJSONPajax' + Math.floor(Math.random() * 1000000);
+          randomCallback = 'tapicJSONP' + Math.floor(Math.random() * 1000000);
         } while (window[randomCallback]);
 
         window[randomCallback] = function(json) {
