@@ -1,6 +1,6 @@
 /*
   Twitch API & Chat in javascript - TAPIC.js
-  Version 2.7.1 - 8 July 2016
+  Version 2.7.2 - 11 July 2016
   Made by skhmt - http://skhmt.github.io
 
   Compile/minify at: https://closure-compiler.appspot.com/
@@ -17,7 +17,7 @@
 
   function define_TAPIC() {
 
-    var _refreshRate = 10; // check the Twitch API every [this many] seconds
+    var _refreshRate = 5; // check the Twitch API every [this many] seconds
 
     var TAPIC = {}; // this is the return object
     var _clientid = '';
@@ -92,12 +92,13 @@
       }
 
       _channel = channel.toLowerCase();
-
+      
+      var twitchWS = 'wss://irc-ws.chat.twitch.tv:443';
       if (_isNode) {
         var WS = require('ws');
-        _ws = new WS('wss://irc-ws.chat.twitch.tv:443');
+        _ws = new WS(twitchWS);
       } else {
-        _ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+        _ws = new WebSocket(twitchWS);
       }
 
       function wsOpen() {
@@ -753,7 +754,7 @@
         // Keep trying to make a random callback name until it finds a unique one.
         var randomCallback;
         do {
-          randomCallback = 'jsonp' + Math.floor(Math.random() * 1000000);
+          randomCallback = 'tapicJSONPajax' + Math.floor(Math.random() * 1000000);
         } while (window[randomCallback]);
 
         window[randomCallback] = function(json) {
@@ -763,7 +764,7 @@
 
         var node = document.createElement('script');
         node.src = url + '&callback=' + randomCallback;
-        document.querySelector('#tapicJsonpContainer').appendChild(node);
+        document.getElementById('tapicJsonpContainer').appendChild(node);
       }
     }
 
@@ -801,10 +802,10 @@
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
 
-  // Map shim for IE9+
+  // Map shim for browsers without ES6 Maps
   if (typeof(Map) !== 'function') {
     window.Map = function () {
-      var _dict = Object.create(null);
+      var dict = Object.create(null);
       
       var map = {};
 
