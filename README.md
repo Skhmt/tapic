@@ -3,7 +3,7 @@ Twitch API and Chat in Javascript.
 
 (Formerly known as TWAPI.js)
 
-View the much more complete reference docs here: (https://skhmt.github.io/tapic/)[https://skhmt.github.io/tapic/]
+View the much more complete reference docs here: https://skhmt.github.io/tapic/
 
 This contains more or less everything you'd need from the Twitch API accessed via function calls, with data refreshed every 10 seconds or so.
 This also has twitch chat via websockets, which is accessed via eventListeners.
