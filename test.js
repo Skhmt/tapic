@@ -1,4 +1,4 @@
-// See test.html for more complete tests. This is just a simple node.js example
+// See test.html for more complete examples. This is just a simple node.js example
 
 var TAPIC = require('tapic');
 var clientid = ''; // public client id
