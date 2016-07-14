@@ -1,8 +1,8 @@
-// See test.html for more complete examples. This is just a simple node.js example
+// See test.html for more complete examples.
 
 var TAPIC = require('tapic');
 var clientid = ''; // public client id
-var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor
+var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor, etc. See test.html or the docs
 
 TAPIC.setup( clientid, oauth, function( username ) {
 	var channel = username;
