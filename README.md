@@ -20,6 +20,10 @@ See `test.js` for some examples in a node environment. As with `test.html`, you 
 
 ---
 
+### Misc
+
 This was written entirely in Javascript and has no dependencies besides ``ws`` when used in node.
 
-Compile for a minified version at `http://closure-compiler.appspot.com/home`
+Compile for a minified version at (Closure Compiler)[http://closure-compiler.appspot.com/home].
+
+MIT License.
