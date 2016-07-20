@@ -5,12 +5,17 @@ Twitch API and Chat in Javascript.
 
 View the complete reference docs here: https://skhmt.github.io/tapic/
 
+
+
+Download it and include in your webpage via: ``<script src="tapic.js"></script>``.
+
 See test.html for examples on every part of tapic.js. Open up the console (F12 or ctrl-shift-i) to see the test outputs.
 You will need to put in a client id and oauth token in test.html for it to work. 
 
-Install via NPM: ``npm install tapic``.
+Or install via NPM: ``npm install tapic``.
 
-Or download it and include in your webpage via: ``<script src="tapic.js"></script>``.
+See test.js for some examples in a node environment. As with test.html, you will ned to put in a client id and oauth token, and test.html has more in-depth usage of the library.
+
 
 This was written entirely in Javascript and has no dependencies besides ``ws`` when used in node or a relatively up-to-date browser.
 
