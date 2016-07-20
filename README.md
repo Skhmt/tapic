@@ -10,7 +10,7 @@ You will need to put in a client id and oauth token in test.html for it to work.
 
 Install via NPM: ``npm install tapic``.
 
-Or download it and include in your webpage via: ``&lt;script src="tapic.js">&lt;/script>``.
+Or download it and include in your webpage via: ``<script src="tapic.js"></script>``.
 
 This was written entirely in Javascript and has no dependencies besides ``ws`` when used in node or a relatively up-to-date browser.
 
