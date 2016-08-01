@@ -26,11 +26,10 @@
   ],
   "name": "tapic",
   "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/skhmt/tapic.js.git"
   },
   "scripts": {},
-  "version": "2.7.3"
+  "version": "3.0.0"
 }
