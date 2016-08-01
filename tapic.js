@@ -3,7 +3,7 @@
  * @overview Twitch API & Chat in javascript.
  * @author Skhmt
  * @license MIT
- * @version 3.0.0
+ * @version 3.1.0
  *
  * @module TAPIC
  */
@@ -86,12 +86,22 @@
         function (res) {
           _username = res.token.user_name;
 
+          // setting up websockets
           var twitchWS = 'wss://irc-ws.chat.twitch.tv:443';
           if (_isNode) {
             var WS = require('ws');
             _ws = new WS(twitchWS);
           } else {
             _ws = new WebSocket(twitchWS);
+          }
+
+          // handling messages
+          if (_isNode) {
+            _ws.on('open', wsOpen);
+            _ws.on('message', wsMessage);
+          } else {
+            _ws.onopen = wsOpen;
+            _ws.onmessage = wsMessage;
           }
 
           function wsOpen() {
@@ -102,6 +112,7 @@
 
           function wsMessage(event) {
             var messages;
+            // websockets can have multiple separate messages per event
             if (_isNode) {
               messages = event.split('\r\n');
             } else {
@@ -114,25 +125,10 @@
                 _ws.send('PONG :tmi.twitch.tv');
               } else if (msg) {
                 _parseMessage(msg);
+                if (msg.substring(0,18) === ':tmi.twitch.tv 001' && typeof callback == 'function') callback(_username);
               }
             }
           }
-          if (_isNode) {
-            _ws.on('open', wsOpen);
-            _ws.on('message', wsMessage);
-          } else {
-            _ws.onopen = wsOpen;
-            _ws.onmessage = wsMessage;
-          }
-
-          _getSubBadgeUrl(function () {
-            _pingAPI(_refreshRate);
-            if (typeof callback == 'function') {
-              setTimeout(function () {
-                callback(_username);
-              }, 500);
-            }
-          });
         }
       );
     };
@@ -141,8 +137,9 @@
      * Joins a new channel. If you were already in a channel, this exits you from that channel first, then joins the new one.
      *
      * @param  {string} channel The channel name, with or without the #.
+     * @param  {function}  callback  Optional callback that's triggered once after the Twitch API has been polled the first time
      */
-    TAPIC.joinChannel = function (channel) {
+    TAPIC.joinChannel = function (channel, callback) {
       if (typeof channel != 'string') {
         console.error('Invalid parameters. Usage: TAPIC.joinChannel(channel);');
         return;
@@ -177,6 +174,13 @@
       _userType = '';
 
       _ws.send('JOIN #' + _channel);
+
+      _getSubBadgeUrl();
+      if (typeof callback == 'function') {
+        _pingAPI(_refreshRate, callback);
+      } else {
+        _pingAPI(_refreshRate);
+      }
     };
 
     /**
@@ -531,8 +535,8 @@
         console.error('Invalid parameters. Usage: TAPIC.runCommercial(length);');
         return;
       }
-      if (!_partner) return console.error('Not a partner, cannot run a commercial.');
       if (!_channel) return console.error('Not in a channel.');
+      if (!_partner) return console.error('Not a partner, cannot run a commercial.');
 
       var host = 'https://api.twitch.tv';
       var path = '/kraken/channels/' + _channel + '/commercial?oauth_token=' + _oauth;
@@ -647,72 +651,39 @@
       _event('raw', text);
       var textarray = text.split(' ');
 
-      if (textarray[2] === 'PRIVMSG') { // regular message
+      if (textarray[2] === 'PRIVMSG') { // chat
+        // :twitch_username!twitch_username@twitch_username.tmi.twitch.tv PRIVMSG #channel :message here
         _msgPriv(textarray);
-      } else if (textarray[1] === 'PRIVMSG') { // host notification
+      } else if (textarray[1] === 'PRIVMSG') { // host
         _event('host', textarray[3].substring(1));
       } else if (textarray[2] === 'NOTICE') {
-        textarray.splice(0, 4);
-        var output = textarray.join(' ').substring(1);
-        _event('notice', output);
+        // @msg-id=slow_off :tmi.twitch.tv NOTICE #channel :This room is no longer in slow mode.
+        _msgNotice(textarray);
       } else if (textarray[1] === 'JOIN') {
-        var joinname = textarray[0].split('!')[0].substring(1);
-        _event('join', joinname);
+        // :twitch_username!twitch_username@twitch_username.tmi.twitch.tv JOIN #channel
+        _msgJoin(textarray);
       } else if (textarray[1] === 'PART') {
-        // :mudb3rt!mudb3rt@mudb3rt.tmi.twitch.tv PART #ultra
-        var partname = textarray[0].split('!')[0].substring(1);
-        _event('part', partname);
+        // :twitch_username!twitch_username@twitch_username.tmi.twitch.tv PART #channel
+        _msgPart(textarray);
       } else if (textarray[2] === 'ROOMSTATE') {
-        // @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #ultra
-        var roomstateTags = _parseTags(textarray[0]);
-        _event('roomstate', {
-          lang: roomstateTags.get('broadcaster-lang'),
-          r9k: roomstateTags.get('r9k'),
-          slow: roomstateTags.get('slow'),
-          subs_only: roomstateTags.get('subs-only')
-        });
+        // @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #channel
+        _msgRoomstate(textarray);
       } else if (textarray[2] === 'WHISPER') {
+        // @badges=;color=#FF69B4;display-name=littlecatbot;emotes=;message-id=21;thread-id=71619374_108640872;turbo=0;user-id=108640872;user-type= :littlecatbot!littlecatbot@littlecatbot.tmi.twitch.tv WHISPER skhmt :hello world
         _msgWhisper(textarray);
-      } else if (textarray[1] === 'CLEARCHAT') {
+      } else if (textarray[1] === 'CLEARCHAT') { // clear chat
+        // :tmi.twitch.tv CLEARCHAT #channel
         _event('clearChat');
-      } else if (textarray[2] === 'CLEARCHAT') {
-        var clearinfoarray = textarray[0].slice(1).split(';'); // remove leading '@' and split
-        var banreason = '';
-        var banduration = 1;
-        for (var j = 0; j < clearinfoarray.length; j++) {
-          var clearinfoparams = clearinfoarray[j].split('=');
-          if (clearinfoparams[0] === 'ban-duration') {
-            banduration = clearinfoparams[1];
-          } else if (clearinfoparams[0] === 'ban-reason') {
-            banreason = clearinfoparams[1].replace(/\\s/g, ' ');
-          }
-        }
-        var clearname = textarray[4].slice(1); // remove leading ':'
-        _event('clearUser', {
-          name: clearname,
-          reason: banreason,
-          duration: banduration
-        });
-
+      } else if (textarray[2] === 'CLEARCHAT') { // ban/timeout
+        // @ban-duration=1;ban-reason=Follow\sthe\srules :tmi.twitch.tv CLEARCHAT #channel :target_username
+        // @ban-reason=Follow\sthe\srules :tmi.twitch.tv CLEARCHAT #channel :target_username
+        _msgBan(textarray);
       } else if (textarray[2] === 'USERSTATE') {
-        var userstateTags = _parseTags(textarray[0]);
-        _userColor = userstateTags.get('color');
-        _userDisplayName = userstateTags.get('display-name');
-        _userEmoteSets = userstateTags.get('emote-sets');
-        _userMod = userstateTags.get('mod');
-        _userSub = userstateTags.get('subscriber');
-        _userTurbo = userstateTags.get('turbo');
-        _userType = userstateTags.get('user-type');
-      } else if (textarray[2] === 'USERNOTICE') {
-        var usernoticeParams = _parseTags(textarray[0]);
-
-        var joinedText = textarray.slice(4).join(' ').substring(1);
-
-        _event('subMonths', {
-          name: usernoticeParams.get('display-name'),
-          months: usernoticeParams.get('msg-param-months'),
-          message: joinedText
-        });
+        // @color=#0D4200;display-name=UserNaME;emote-sets=0,33;mod=1;subscriber=1;turbo=1;user-type=staff :tmi.twitch.tv USERSTATE #channel
+        _msgUserstate(textarray);
+      } else if (textarray[2] === 'USERNOTICE') { // sub notifications for now, may change in the future
+        // @badges=staff/1,broadcaster/1,turbo/1;color=#008000;display-name=TWITCH_UserName;emotes=;mod=0;msg-id=resub;msg-param-months=6;room-id=1337;subscriber=1;system-msg=TWITCH_UserName\shas\ssubscribed\sfor\s6\smonths!;login=twitch_username;turbo=1;user-id=1337;user-type=staff :tmi.twitch.tv USERNOTICE #channel :Great stream -- keep it up!
+        _msgSub(textarray);
       } else {
         // if ( text ) console.info( text );
       }
@@ -790,82 +761,166 @@
       }
     }
 
+    function _msgNotice(textarray) {
+      textarray.splice(0, 4);
+      var output = textarray.join(' ').substring(1);
+      _event('notice', output);
+    }
 
-    function _pingAPI(refresh) {
+    function _msgJoin(textarray) {
+      var joinname = textarray[0].split('!')[0].substring(1);
+      _event('join', joinname);
+    }
 
-      if (_channel) {
-        _getJSON(
-          'https://api.twitch.tv/kraken/streams/' + _channel + '?client_id=' + _clientid + '&api_version=3',
-          function(res) {
-            if (res.stream) {
-              _online = true;
-              _currentViewCount = res.stream.viewers;
-              _fps = res.stream.average_fps;
-              _videoHeight = res.stream.video_height;
-              _delay = res.stream.delay;
-            } else {
-              _online = false;
-            }
-          }
-        );
+    function _msgPart(textarray) {
+      var partname = textarray[0].split('!')[0].substring(1);
+      _event('part', partname);
+    }
 
-        _getJSON(
-          'https://api.twitch.tv/kraken/channels/' + _channel + '?client_id=' + _clientid + '&api_version=3',
-          function(res) {
-            _game = res.game;
-            _status = res.status;
-            _followerCount = res.followers;
-            _totalViewCount = res.views;
-            _partner = res.partner;
-            _createdAt = res.created_at;
-            _logo = res.logo;
-            _videoBanner = res.video_banner; // offline banner
-            _profileBanner = res.profile_banner;
-          }
-        );
+    function _msgRoomstate(textarray) {
+      var roomstateTags = _parseTags(textarray[0]);
+      _event('roomstate', {
+        lang: roomstateTags.get('broadcaster-lang'),
+        r9k: roomstateTags.get('r9k'),
+        slow: roomstateTags.get('slow'),
+        subs_only: roomstateTags.get('subs-only')
+      });
+    }
 
-        _getJSON(
-          'https://api.twitch.tv/kraken/channels/' + _channel + '/follows?client_id=' + _clientid + '&api_version=3&limit=100',
-          function(res) {
-            // https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
-            if (!res.follows) return;
-
-            var firstUpdate = true;
-            if (_followers.length > 0) firstUpdate = false;
-
-            for (var i = 0; i < res.follows.length; i++) {
-              var tempFollower = res.follows[i].user.display_name;
-              if (_followers.indexOf(tempFollower) === -1) { // if user isn't in _followers
-                if (!firstUpdate) {
-                  _event('follow', tempFollower); // if it's not the first update, post new follower
-                }
-                _followers.push(tempFollower); // add the user to the follower list
-              }
-            }
-          }
-        );
-
-        _getJSON(
-          'https://tmi.twitch.tv/group/user/' + _channel + '/chatters?client_id=' + _clientid + '&api_version=3',
-          function(res) {
-            if (!_isNode) { // using _getJSON with this API endpoint adds "data" to the object
-              res = res.data;
-            }
-
-            if (!res.chatters) {
-              return console.log('No response for user list.');
-            }
-            _currentViewCount = res.chatter_count;
-            // .slice(); is to set by value rather than reference
-            _chatters.moderators = res.chatters.moderators.slice();
-            _chatters.staff = res.chatters.staff.slice();
-            _chatters.admins = res.chatters.admins.slice();
-            _chatters.global_mods = res.chatters.global_mods.slice();
-            _chatters.viewers = res.chatters.viewers.slice();
-          }
-        );
+    function _msgBan(textarray) {
+      var clearinfoarray = textarray[0].slice(1).split(';'); // remove leading '@' and split
+      var banreason = '';
+      var banduration = 1;
+      for (var j = 0; j < clearinfoarray.length; j++) {
+        var clearinfoparams = clearinfoarray[j].split('=');
+        if (clearinfoparams[0] === 'ban-duration') {
+          banduration = clearinfoparams[1];
+        } else if (clearinfoparams[0] === 'ban-reason') {
+          banreason = clearinfoparams[1].replace(/\\s/g, ' ');
+        }
       }
+      var clearname = textarray[4].slice(1); // remove leading ':'
+      _event('clearUser', {
+        name: clearname,
+        reason: banreason,
+        duration: banduration
+      });
+    }
 
+    function _msgUserstate(textarray) {
+      var userstateTags = _parseTags(textarray[0]);
+      _userColor = userstateTags.get('color');
+      _userDisplayName = userstateTags.get('display-name');
+      _userEmoteSets = userstateTags.get('emote-sets');
+      _userMod = userstateTags.get('mod');
+      _userSub = userstateTags.get('subscriber');
+      _userTurbo = userstateTags.get('turbo');
+      _userType = userstateTags.get('user-type');
+    }
+
+    function _msgSub(textarray) {
+      var usernoticeParams = _parseTags(textarray[0]);
+
+      var joinedText = textarray.slice(4).join(' ').substring(1);
+
+      _event('subMonths', {
+        name: usernoticeParams.get('display-name'),
+        months: usernoticeParams.get('msg-param-months'),
+        message: joinedText
+      });
+    }
+
+    function _pingAPI(refresh, callback) {
+
+      if (!_channel) return;
+
+      var streams = false;
+      var channels = false;
+      var follows = false;
+      var chatters = false;
+
+      _getJSON(
+        'https://api.twitch.tv/kraken/streams/' + _channel + '?client_id=' + _clientid + '&api_version=3',
+        function(res) {
+          if (res.stream) {
+            _online = true;
+            _currentViewCount = res.stream.viewers;
+            _fps = res.stream.average_fps;
+            _videoHeight = res.stream.video_height;
+            _delay = res.stream.delay;
+          } else {
+            _online = false;
+          }
+
+          streams = true;
+          if (streams && channels && follows && chatters && typeof callback == 'function') callback();
+        }
+      );
+
+      _getJSON(
+        'https://api.twitch.tv/kraken/channels/' + _channel + '?client_id=' + _clientid + '&api_version=3',
+        function(res) {
+          _game = res.game;
+          _status = res.status;
+          _followerCount = res.followers;
+          _totalViewCount = res.views;
+          _partner = res.partner;
+          _createdAt = res.created_at;
+          _logo = res.logo;
+          _videoBanner = res.video_banner; // offline banner
+          _profileBanner = res.profile_banner;
+
+          channels = true;
+          if (streams && channels && follows && chatters && typeof callback == 'function') callback();
+        }
+      );
+
+      _getJSON(
+        'https://api.twitch.tv/kraken/channels/' + _channel + '/follows?client_id=' + _clientid + '&api_version=3&limit=100',
+        function(res) {
+          // https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
+          if (!res.follows) return;
+
+          var firstUpdate = true;
+          if (_followers.length > 0) firstUpdate = false;
+
+          for (var i = 0; i < res.follows.length; i++) {
+            var tempFollower = res.follows[i].user.display_name;
+            if (_followers.indexOf(tempFollower) === -1) { // if user isn't in _followers
+              if (!firstUpdate) {
+                _event('follow', tempFollower); // if it's not the first update, post new follower
+              }
+              _followers.push(tempFollower); // add the user to the follower list
+            }
+          }
+
+          follows = true;
+          if (streams && channels && follows && chatters && typeof callback == 'function') callback();
+        }
+      );
+
+      _getJSON(
+        'https://tmi.twitch.tv/group/user/' + _channel + '/chatters?client_id=' + _clientid + '&api_version=3',
+        function(res) {
+          if (!_isNode) { // using _getJSON with this API endpoint adds "data" to the object
+            res = res.data;
+          }
+
+          if (!res.chatters) {
+            return console.log('No response for user list.');
+          }
+          _currentViewCount = res.chatter_count;
+          // .slice(); is to set by value rather than reference
+          _chatters.moderators = res.chatters.moderators.slice();
+          _chatters.staff = res.chatters.staff.slice();
+          _chatters.admins = res.chatters.admins.slice();
+          _chatters.global_mods = res.chatters.global_mods.slice();
+          _chatters.viewers = res.chatters.viewers.slice();
+
+          chatters = true;
+          if (streams && channels && follows && chatters && typeof callback == 'function') callback();
+        }
+      );
 
       setTimeout(function () {
         if (!_isNode) {
@@ -875,15 +930,15 @@
       }, refresh * 1000);
     }
 
+    // This is only needed once per channel and it requires its own ajax call, so it isn't included in _pingAPI()
     function _getSubBadgeUrl(callback) {
-      if (typeof callback !== 'function') return console.error('Callback needed.');
       _getJSON(
         'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3&client_id=' + _clientid,
         function(res) {
           if (res.subscriber) {
             _subBadgeUrl = res.subscriber.image;
           }
-          if (callback) {
+          if (typeof callback == 'function') {
             callback();
           }
         }
@@ -914,7 +969,7 @@
         // Keep trying to make a random callback name until it finds a unique one.
         var randomCallback;
         do {
-          randomCallback = 'tapicJSONP' + Math.floor(Math.random() * 1000000);
+          randomCallback = 'tapicJSONP' + Math.floor(Math.random() * 65536);
         } while (window[randomCallback]);
 
         window[randomCallback] = function (json) {
