@@ -11,17 +11,15 @@
 
 <script>
 	var clientid = ''; // public client id
-	var oauth = ''; // oauth without "oauth:", requires chat_login, channel_editor
+	var oauth = ''; // oauth, requires chat_login, channel_editor
 	// channel_commercial (if you want to run commercials), channel_check_subscription (if you want to check subscriber status)
 	// Do this first
-	TAPIC.setup( clientid, oauth, function( username ) {
+	TAPIC.setup(clientid, oauth, function (username) {
 		// This is also required for a lot of things to work
 		var channel = username;
-		TAPIC.runChat( channel, function() {
-			// Run test functions after joining a chat
-			tests();
-		} );
-	} );
+		TAPIC.joinChannel(channel);
+		setTimeout(tests, 5*1000);
+	});
 	// EventListeners
 	TAPIC.listen('raw', function( e ) {
 		// You really don't NEED to see raw messages. But you can if you want.
@@ -134,10 +132,9 @@
 		} );
 		// // Requires 'channel_check_subscription'
 		// var subUser = 'skhmt';
-		// var subChannel = 'letsmakefriends';
-		// TAPIC.isSubscribing( subUser, subChannel, function( res ) {
+		// TAPIC.isSubscribing( subUser, function( res ) {
 		// 	if ( res.isSubscribing ) console.log( subUser + ' has been subbed to ' + subChannel + ' since: ' + res.dateSubscribed );
-		// 	else console.log( subUser + ' is not subbed to ' + subChannel + '.' );
+		// 	else console.log( subUser + ' is not subbed.' );
 		// } );
 		console.log( 'isPartner: ' + TAPIC.isPartner() );
 		console.log( 'getSubBadgeUrl: ' + TAPIC.getSubBadgeUrl() );
