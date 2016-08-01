@@ -22,6 +22,4 @@ Or install via NPM: `npm install tapic`.
 
 This was written entirely in Javascript and has no dependencies besides [ws](https://www.npmjs.com/package/ws) when used in node.
 
-Compile for a minified version at [Closure Compiler](http://closure-compiler.appspot.com/).
-
 MIT License.
