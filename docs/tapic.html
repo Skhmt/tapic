@@ -117,7 +117,7 @@
         <hr>
 
         <div id="funcJoinChannel">
-          <h2>TAPIC.joinChannel( <em>channel</em> )</h2>
+          <h2>TAPIC.joinChannel( <em>channel</em>[, callback] )</h2>
           <p>
             Joins a channel. If you were previously in a channel, it disconnects you from that channel first.
           </p>
@@ -126,6 +126,10 @@
             <li>
               <strong>channel</strong>
               <em>(string)</em> - The channel to change to.
+            </li>
+            <li>
+              <strong>callback</strong>
+              <em>(function)</em> - Optional callback after the first API poll is complete
             </li>
           </ul>
         </div>
