@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>TAPIC.js Reference</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.6/cosmo/bootstrap.min.css" rel="stylesheet" integrity="sha384-OiWEn8WwtH+084y4yW2YhhH6z/qTSecHZuk/eiWtnvLtU+Z8lpDsmhOKkex6YARr" crossorigin="anonymous">
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/prism.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/components/prism-javascript.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism.min.css">
+
+  <style>
+    body {
+      position: relative;
+    }
+    .affix {
+      top: 20px;
+    }
+    .nav-stacked > li > a {
+      padding-top: 0px !important;
+      padding-bottom: 0px !important;
+      margin: 0 !important;
+    }
+    .nobullet {
+      list-style-type: none;
+    }
+    #myScrollspy .nav ul.nav {
+        display: none;
+    }
+    #myScrollspy .nav>.active>ul.nav {
+        display: block;
+    }
+  </style>
+</head>
+
+<body data-spy="scroll" data-target="#myScrollspy" data-offset="15">
+
+  <div class="container-fluid" style="background-color:#000;color:#fff;height:80px;">
+    <h1>TAPIC.js Reference</h1>
+  </div>
+  <br>
+
+  <div class="container">
+    <div class="row">
+
+
+      <div class="col-sm-9">
+
+        <div id="about">
+          <h2>TAPIC.js 3.x</h2>
+          <p>
+            <a href="https://raw.githubusercontent.com/Skhmt/tapic.js/master/tapic.js">Latest version</a>
+          </p>
+          <p>
+            <a href="https://github.com/Skhmt/tapic.js">Github repo</a>
+          </p>
+          <p>
+            TAPIC.js is a purely javascript framework for accessing Twitch chat and most of the Twitch API.
+            It was created for use in <a href="https://github.com/Skhmt/koalabot">KoalaBot</a> mostly, but
+            it has many other useful applications.
+          </p>
+          <p>
+            Why should you use TAPIC.js when <a href="https://www.tmijs.org/">TMI.js</a> exists? TAPIC.js is
+            lighter weight (~41kb for tmi.js vs ~10kb for tapic.js) and provides roughly the same functionality. Use either or both or neither.
+          </p>
+          <p>
+            Its intended use is for client-side web apps, CLI/BrowserSource pages for OBS, and NW.js/Electron desktop apps.
+            It will also work with Node.js: <code>npm install tapic</code>.
+          </p>
+          <p>
+            The example <a href="https://github.com/Skhmt/tapic.js/blob/master/test.html">test.html</a> shows how to use TAPIC.js
+            in a simple chatroom reading website. The example requires inputting your own clientid and oauth to work.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="setup">
+          <h2>TAPIC.setup( <em>clientid, oauth, callback</em> )</h2>
+          <p>
+            Sets up TAPIC.js. You must run this before <em>anything</em> works.
+          </p>
+          <p>
+            You probably want to run TAPIC.joinChannel(channel) after this.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>clientid</strong>
+              <em>(string)</em> - The public client id of your app.
+            </li>
+            <li>
+              <strong>oauth</strong>
+              <em>(string)</em> - The oauth token of the user you want to be logged in. Does not include
+                <code>oauth:</code>.
+            </li>
+            <li>
+              <strong>callback</strong>
+              <em>(function)</em> - Callback function has one parameter, the username.
+            </li>
+          </ul>
+          <p><strong>Example</strong></p>
+          <ul class="nobullet">
+            <li>
+<pre><code class="language-javascript">TAPIC.setup( clientid, oauth, function( username ) {
+  console.log( 'The username is: ' + username );
+} );
+</code></pre>
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="funcJoinChannel">
+          <h2>TAPIC.joinChannel( <em>channel</em> )</h2>
+          <p>
+            Joins a channel. If you were previously in a channel, it disconnects you from that channel first.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>channel</strong>
+              <em>(string)</em> - The channel to change to.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerRaw">
+          <h2>Listener - raw</h2>
+          <p>
+            Every RAW TMI message from the standard chat server. You most likely won't be using this unless
+            you need to parse for something that TAPIC.js doesn't already have a listener for.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(string)</em> - The raw message.
+            </li>
+          </ul>
+          <p><strong>Example</strong></p>
+          <ul class="nobullet">
+            <li>
+              <code class="language-javascript">TAPIC.listen('raw', function( res ) { console.log( res ); } );</code>
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerMsg">
+          <h2>Listener - message</h2>
+          <p>
+            A regular message (PRIVMSG in IRC). This includes actions (/me).
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res.from</strong>
+              <em>(string)</em> - The username of the person who sent the message.
+            </li>
+            <li>
+              <strong>res.text</strong>
+              <em>(string)</em> - The text of the message.
+            </li>
+            <li>
+              <strong>res.color</strong>
+              <em>(string)</em> - The color of the user name.
+            </li>
+            <li>
+              <strong>res.emotes</strong>
+              <em>(string)</em> - The emote id and character locations. See: https://github.com/justintv/Twitch-API/blob/master/IRC.md#privmsg.
+            </li>
+            <li>
+              <strong>res.action</strong>
+              <em>(boolean)</em> - True if it is an action (<code>/me</code>), false if it is a regular message.
+            </li>
+            <li>
+              <strong>res.streamer</strong>
+              <em>(boolean)</em> - True if the streamer (channel name) sent the message, false if it is anyone else.
+            </li>
+            <li>
+              <strong>res.mod</strong>
+              <em>(boolean)</em> - True if the user that sent the message is a moderator, false if not.
+            </li>
+            <li>
+              <strong>res.sub</strong>
+              <em>(boolean)</em> - True if the user that sent the message is a subscriber, false if not.
+            </li>
+            <li>
+              <strong>res.turbo</strong>
+              <em>(boolean)</em> - True if the user that sent the message has turbo, false if not.
+            </li>
+            <li>
+              <strong>res.badges</strong>
+              <em>(array)</em> - Array of badges, such as 'broadcaster/1', 'subscriber/1', and 'warcraft/alliance'.
+            </li>
+            <li>
+              <strong>res.room_id</strong>
+              <em>(integer)</em> - The chatroom ID of the room the message was sent to.
+            </li>
+            <li>
+              <strong>res.user_id</strong>
+              <em>(integer)</em> - The Twitch ID number of the user that sent the message.
+            </li>
+          </ul>
+          <p><strong>Example</strong></p>
+          <ul class="nobullet">
+            <li>
+<pre><code class="language-javascript">TAPIC.listen('message', function( res ) {
+  var output = (res.mod ? '&lt;img src="http://chat-badges.s3.amazonaws.com/mod.png">' : '') +
+    (res.sub  ?'&lt;img src="' + TAPIC.getSubBadgeUrl() + '">' : '') +
+    (res.turbo ? '&lt;img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
+    (res.streamer ? '&lt;img src="http://chat-badges.s3.amazonaws.com/broadcaster.png">' : '') +
+    '&lt;strong style="color: ' + res.color + ';">' +
+    res.from +
+    '&lt;/strong>&nbsp;' +
+    (res.action ? '&lt;span style="color: ' + res.color + ';">' : ':&nbsp;&nbsp;') +
+    res.text +
+    (res.action ? '&lt;/span>' : '' );
+  document.querySelector('#chat').innerHTML += output;
+} );
+</code></pre>
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerWhisper">
+          <h2>Listener - whisper</h2>
+          <p>
+            A whisper sent to the user.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res.from</strong>
+              <em>(string)</em> - The user that sent the whisper.
+            </li>
+            <li>
+              <strong>res.to</strong>
+              <em>(string)</em> - The recipient of the whisper (the bot name).
+            </li>
+            <li>
+              <strong>res.text</strong>
+              <em>(string)</em> - The text of the whisper.
+            </li>
+            <li>
+              <strong>res.color</strong>
+              <em>(string)</em> - The color of the sender's name.
+            </li>
+            <li>
+              <strong>res.turbo</strong>
+              <em>(boolean)</em> - True if the sender is turbo, false if not.
+            </li>
+            <li>
+              <strong>res.message_id</strong>
+              <em>(integer)</em> - Message id.
+            </li>
+            <li>
+              <strong>res.thread_id</strong>
+              <em>(integer)</em> - Thread id.
+            </li>
+            <li>
+              <strong>res.user_id</strong>
+              <em>(integer)</em> - User id.
+            </li>
+            <li>
+              <strong>res.badges</strong>
+              <em>(array)</em> - Array of badges, such as 'broadcaster/1', 'subscriber/1', and 'warcraft/alliance'.
+            </li>
+          </ul>
+          <p><strong>Example</strong></p>
+          <ul class="nobullet">
+            <li>
+<pre><code class="language-javascript">TAPIC.listen('whisper', function( res ) {
+  var output = (res.turbo ? '&lt;img src="http://chat-badges.s3.amazonaws.com/turbo.png">' : '') +
+    '&lt;strong style="color: ' + res.color + ';">' +
+    res.from +
+    '&lt;/strong>' +
+    ' &gt; ' +
+    '&lt;strong>' + res.to + '&lt;/strong> : ' +
+    res.text;
+  document.querySelector('#chat').innerHTML += output;
+} );
+</code></pre>
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerEchoChat">
+          <h2>Listener - echoChat</h2>
+          <p>
+            Echos chat messages sent by the bot.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(string)</em> - The text of the chat message.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerEchoWhisper">
+          <h2>Listener - echoWhisper</h2>
+          <p>
+            Echos whispers sent by the bot.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res.to</strong>
+              <em>(string)</em> - The target of the whisper.
+            </li>
+            <li>
+              <strong>res.text</strong>
+              <em>(string)</em> - The text of the whisper.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerNotice">
+          <h2>Listener - notice</h2>
+          <p>
+            Notices from the standard chat server. For example, the response of the <code>/mods</code> command.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(string)</em> - The notice.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerJoin">
+          <h2>Listener - join</h2>
+          <p>
+            When a user joins your channel. Fires for every user in the channel when you enter, so be careful
+            on how you use this. This doesn't seem to be real-time, unlike real IRC.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(string)</em> - The entering user's name.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerPart">
+          <h2>Listener - part</h2>
+          <p>
+            When a user leaves your channel. This doesn't seem to be real-time, unlike real IRC.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(string)</em> - The parting user's name.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerClearUser">
+          <h2>Listener - clearUser</h2>
+          <p>
+            This is sent when a user is timed out or banned or "purged" by a moderator. The default action
+            should be to remove or hide all of that user's previous chat text.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res.name</strong>
+              <em>(string)</em> - The cleared user's name.
+            </li>
+            <li>
+              <strong>res.reason</strong>
+              <em>(string)</em> - The optional reason for timeout.
+            </li>
+            <li>
+              <strong>res.duration</strong>
+              <em>(string)</em> - The length of the timeout in seconds.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerClearChat">
+          <h2>Listener - clearChat</h2>
+          <p>
+            This is sent when a moderator wants to purge all of the chat. The default action should be to
+            remove or hide all of the previous chatroom text.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="listenerHost">
+          <h2>Listener - host</h2>
+          <p>
+            This is sent when the user (not the channel) is hosted. If the logged in user is not the
+            broadcaster, this will not be an accurate notification of hosts.
+          </p>
+          <p>
+            To get host notifications if you're not logged in as the broadcaster, you need to use: <br>
+            <code>http://tmi.twitch.tv/hosts?include_logins=1&target=[user id number]</code> (Won't work on a client-side browser - no CORS/JSONP support)
+            <br>or<br>
+            <code> https://decapi.me/twitch/hosts?channel=[channel name]</code> (CORS support. Thanks Decicus)
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(string)</em> - The user that hosted you.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerFollow">
+          <h2>Listener - follow</h2>
+          <p>
+            This is sent when a user follows the channel. The limitation is about 100 follows per minute. Any
+            more might get lost.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(string)</em> - The user that followed the channel.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerSub">
+          <h2>Listener - sub</h2>
+          <p>
+            Subscription notification.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(string)</em> - The user that subscribed.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerSubMonths">
+          <h2>Listener - subMonths</h2>
+          <p>
+            Resubscription and months and maybe message notification.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res.name</strong>
+              <em>(string)</em> - The name of the person that resubscribed.
+            </li>
+            <li>
+              <strong>res.months</strong>
+              <em>(integer)</em> - Number of months subscribed. Alternatively, number resubscribes + 1.
+            </li>
+            <li>
+              <strong>res.message</strong>
+              <em>(string)</em> - Optional resub message.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerSubsAway">
+          <h2>Listener - subsAway</h2>
+          <p>
+            Number of subscribers since you've been offline.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res</strong>
+              <em>(integer)</em> - Number of subscribers.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="listenerRoomstate">
+          <h2>Listener - roomstate</h2>
+          <p>
+            The roomstate options set on a room.
+          </p>
+          <p><strong>Callback functions</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>res.lang</strong>
+              <em>(string)</em> - The language of the room. Often left blank.
+            </li>
+            <li>
+              <strong>res.r9k</strong>
+              <em>(boolean)</em> - True if the room is in r9k mode, false if not.
+            </li>
+            <li>
+              <strong>res.slow</strong>
+              <em>(boolean)</em> - True if the room is in slow mode, false if not.
+            </li>
+            <li>
+              <strong>res.subs_only</strong>
+              <em>(boolean)</em> - True if the room is in subs (and mods) only mode, false if not.
+            </li>
+          </ul>
+          <p><strong>Example</strong></p>
+          <ul class="nobullet">
+            <li>
+<pre><code class="language-javascript">TAPIC.listen('roomstate', function( res ) {
+  var output = 'Roomstate options: ';
+  if ( res.lang ) output += ' lang:' + res.lang;
+  if ( res.r9k == 1 ) output += ' r9k';
+  if ( res.slow == 1 ) output += ' slow';
+  if ( res.subs_only == 1 ) output += ' subs-only';
+  if ( !res.lang && res.r9k != 1 && res.slow != 1 && res.subs_only != 1 ) {
+    output += ' none.';
+  }
+  document.querySelector('#chat').innerHTML += output;
+} );
+</code></pre>
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <!-- /////////////////////////////////////////////////////////////////////////////////////////////// -->
+
+        <div id="funcSendChat">
+          <h2>TAPIC.sendChat( <em>text</em> )</h2>
+          <p>
+            Sends a message to the channel. Actions (<code>/me</code>, <code>/host</code>, etc) work.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>text</strong>
+              <em>(string)</em> - The message to send to the channel.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="funcSendWhisper">
+          <h2>TAPIC.sendWhisper( <em>user, text</em> )</h2>
+          <p>
+            Sends a whisper to a specific user.
+          </p>
+          <p>
+            If you use whispers, it might be a good idea to get your app
+            <a href="https://discuss.dev.twitch.tv/t/are-your-whispers-not-going-through-for-your-bot/5183">whitelisted</a>.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>user</strong>
+              <em>(string)</em> - The user to whisper a message to.
+            </li>
+            <li>
+              <strong>text</strong>
+              <em>(string)</em> - The message to whisper.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="funcRunCommercial">
+          <h2>TAPIC.runCommercial( <em>length</em> )</h2>
+          <p>
+            Requires the <code>channel_commercial</code> permission. Runs a commercial.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>length</strong>
+              <em>(integer)</em> - The seconds to run the commercial. If empty, defaults to 30 seconds.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="funcSetStatusGame">
+          <h2>TAPIC.setStatusGame( <em>status, game</em> )</h2>
+          <p>
+            Sets the channel's status (title) and game played.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>status</strong>
+              <em>(string)</em> - The status (title) for the stream.
+            </li>
+            <li>
+              <strong>game</strong>
+              <em>(string)</em> - The game being played in the stream.
+            </li>
+          </ul>
+          <p><strong>Example</strong></p>
+          <ul class="nobullet">
+            <li>
+<code class="language-javascript">TAPIC.setStatusGame('Making a Twitch Javascript Framework #programming', 'Creative');</code>
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="funcEmit">
+          <h2>TAPIC.emit( <em>event, data</em> )</h2>
+          <p>
+            Triggers listeners on <em>event</em> and gives them <em>data</em>. Custom events can also be defined and used.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>event</strong>
+              <em>(string)</em> - The event name, such as 'message' or 'action'.
+            </li>
+            <li>
+              <strong>data</strong>
+              <em>(any)</em> - The data for the event - see the Listeners section for propper formatting.
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="funcGetUsername">
+          <h2>TAPIC.getUsername()</h2>
+          <p>
+            Gets the username that's logged in to TAPIC.js. This may not be the same as the channel you're in.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The username.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetChannel">
+          <h2>TAPIC.getChannel()</h2>
+          <p>
+            Gets the channel that you're in.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The channel name.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetGame">
+          <h2>TAPIC.getGame()</h2>
+          <p>
+            Gets the game being played. For example: DayZ, Creative, etc.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The game name.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetStatus">
+          <h2>TAPIC.getStatus()</h2>
+          <p>
+            Gets the status (title) of the stream.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The stream status.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetFollowerCount">
+          <h2>TAPIC.getFollowerCount()</h2>
+          <p>
+            Gets the number of followers of the stream.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>integer</em> - The number of followers.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetTotalViewCount">
+          <h2>TAPIC.getTotalViewCount()</h2>
+          <p>
+            Gets the total (cumulative) number of viewers of the stream.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>integer</em> - The total number of viewers of the stream.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetCurrentViewCount">
+          <h2>TAPIC.getCurrentViewCount()</h2>
+          <p>
+            Gets the current number of viewers watching the stream.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The current number of viewers in the stream.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetCreatedAt">
+          <h2>TAPIC.getCreatedAt()</h2>
+          <p>
+            The time the stream started.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The time the stream was created at.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetLogo">
+          <h2>TAPIC.getLogo()</h2>
+          <p>
+            Gets the channel's 300x300px logo URL.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The logo URL.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetVideoBanner">
+          <h2>TAPIC.getVideoBanner()</h2>
+          <p>
+            Gets the channel's offline video banner/image URL.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The offline video banner URL.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetProfileBanner">
+          <h2>TAPIC.getProfileBanner()</h2>
+          <p>
+            Gets the channel's user profile banner URL.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The user profile banner URL.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetDisplayName">
+          <h2>TAPIC.getDisplayName()</h2>
+          <p>
+            Gets the user's display name, which includes capitalization, while getUsername always reutrns
+            lowercase.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The display name of the user.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetColor">
+          <h2>TAPIC.getColor()</h2>
+          <p>
+            Gets the user's preferred coloring in the '#ABC123' hex format.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The username color.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetEmoteSets">
+          <h2>TAPIC.getEmoteSets()</h2>
+          <p>
+            Gets the user's emote sets in comma-separated format.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The emote sets.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetMod">
+          <h2>TAPIC.getMod()</h2>
+          <p>
+            Returns a 1 if the user is a moderator in the channel or a 0 if not.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>integer</em> - 1 if moderator, 0 if not.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetSub">
+          <h2>TAPIC.getSub()</h2>
+          <p>
+            Returns a 1 if the user is a subscriber to the channel or a 0 if not.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>integer</em> - 1 if subscriber, 0 if not.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetTurbo">
+          <h2>TAPIC.getTurbo()</h2>
+          <p>
+            Returns a 1 if the user is paying for Turbo or a 0 if not.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>integer</em> - 1 if turbo, 0 if not.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetUserType">
+          <h2>TAPIC.getUserType()</h2>
+          <p>
+            The user's usertype. For example, 'staff'.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The user type.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcIsFollowing">
+          <h2>TAPIC.isFollowing( <em>user, target, callback</em> )</h2>
+          <p>
+            Checks if <code>user</code> is following <code>target</code>.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>user</strong>
+              <em>(string)</em> - The user.
+            </li>
+            <li>
+              <strong>target</strong>
+              <em>(string)</em> - The target streamer.
+            </li>
+            <li>
+              <strong>callback</strong>
+              <em>(function)</em> - callback.isFollowing is a boolean for if the user is following the
+              target or not. Callback.dateFollowed is a string for when the user started following the
+              target, but is null if she is not following the target.
+            </li>
+          </ul>
+          <p><strong>Example</strong></p>
+          <ul class="nobullet">
+            <li>
+<pre><code class="language-javascript">var folUser = 'skhmt';
+var folTarget = 'letsmakefriends';
+TAPIC.isFollowing( folUser, folTarget, function( res ) {
+  if ( res.isFollowing ) console.log( folUser + ' has been following ' + folTarget + ' since: ' + res.dateFollowed );
+  else console.log( folUser + ' is not following ' + folTarget + '.' );
+} );
+</code></pre>
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="funcIsSubscribing">
+          <h2>TAPIC.isSubscribing( <em>user, callback</em> )</h2>
+          <p>
+            Requires the <code>channel_check_subscription</code> permission. Checks if <code>user</code> is
+            subscribed to <code>channel</code>.
+          </p>
+          <p><strong>Parameters</strong></p>
+          <ul class="nobullet">
+            <li>
+              <strong>user</strong>
+              <em>(string)</em> - The user to check.
+            </li>
+            <li>
+              <strong>callback</strong>
+              <em>(function)</em> - Callback.isSubscribing is a boolean, true if subscribing, false if not.
+              Callback.dateSubscribed is the date subscribed.
+            </li>
+          </ul>
+          <p><strong>Example</strong></p>
+          <ul class="nobullet">
+            <li>
+<pre><code class="language-javascript">var subUser = 'skhmt';
+var subChannel = 'letsmakefriends';
+TAPIC.isSubscribing( subUser, subChannel, function( res ) {
+  if ( res.isSubscribing ) console.log( subUser + ' has been subbed to ' + subChannel + ' since: ' + res.dateSubscribed );
+  else console.log( subUser + ' is not subbed to ' + subChannel + '.' );
+} );
+</code></pre>
+            </li>
+          </ul>
+        </div>
+
+        <hr>
+
+        <div id="funcIsPartner">
+          <h2>TAPIC.isPartner()</h2>
+          <p>
+            Checks if the channel is partnered with Twitch.tv.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>boolean</em> - True if a partner, false if not.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetSubBadgeUrl">
+          <h2>TAPIC.getSubBadgeUrl()</h2>
+          <p>
+            Gets the URL for the subscriber badge used in front of chat messages.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - URL for the subscriber badge. Empty if not partnered.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcIsOnline">
+          <h2>TAPIC.isOnline()</h2>
+          <p>
+            Checks if the channel is online.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>boolean</em> - True if the channel is online, false if it's offline.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetFps">
+          <h2>TAPIC.getFps()</h2>
+          <p>
+            Gets the FPS the channel is currently running at.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The frames per second of the channel.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetVideoHeight">
+          <h2>TAPIC.getVideoHeight()</h2>
+          <p>
+            Gets the video height (480, 720, 1080, etc) of the channel.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>integer</em> - The video height.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetDelay">
+          <h2>TAPIC.getDelay()</h2>
+          <p>
+            Gets the delay setting of the stream. This doesn't show actual delay from Twitch.tv to users,
+            just the intentionally added delay.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>string</em> - The delay.
+          </p>
+        </div>
+
+        <hr>
+
+        <div id="funcGetChatters">
+          <h2>TAPIC.getChatters()</h2>
+          <p>
+            Gets the current chatters in the chatroom.
+          </p>
+          <p>
+            <strong>Returns</strong>
+            <em>object</em> -
+<pre><code class="language-json">{
+  "moderators": ["user01", "user02", ...],
+  "staff": ["user11", "user12", ...],
+  "admins": ["user21", "user22", ...],
+  "global_mods": ["user31", "user32", ...],
+  "viewers": ["user41", "user42", ...]
+}
+</code></pre>
+          </p>
+        </div>
+
+
+        <!-- extra spaces for consistent scroll spy behavior purposes -->
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+      </div> <!-- column -->
+
+
+      <nav class="col-sm-3" id="myScrollspy">
+        <ul class="nav nav-pills nav-stacked" data-spy="affix" data-offset-top="85">
+          <li>
+            <strong><a href="#about">About</a></strong>
+            <ul class="nav nav-pills nav-stacked">
+              <li><a href="#about">TAPIC.js</a></li>
+            </ul>
+          </li>
+          <li>
+            <strong><a href="#setup">Setup</a></strong>
+            <ul class="nav nav-pills nav-stacked">
+              <li><a href="#setup">setup</a></li>
+              <li><a href="#funcJoinChannel">joinChannel</a></li>
+            </ul>
+          </li>
+          <li>
+            <strong><a href="#listenerRaw">Listeners</a></strong>
+            <ul class="nav nav-pills nav-stacked">
+              <li><a href="#listenerRaw">raw</a></li>
+              <li><a href="#listenerMsg">message</a></li>
+              <li><a href="#listenerWhisper">whisper</a></li>
+              <li><a href="#listenerEchoChat">echoChat</a></li>
+              <li><a href="#listenerEchoWhisper">echoWhisper</a></li>
+              <li><a href="#listenerNotice">notice</a></li>
+              <li><a href="#listenerJoin">join</a></li>
+              <li><a href="#listenerPart">part</a></li>
+              <li><a href="#listenerClearUser">clearUser</a></li>
+              <li><a href="#listenerClearChat">clearChat</a></li>
+              <li><a href="#listenerHost">host</a></li>
+              <li><a href="#listenerFollow">follow</a></li>
+              <li><a href="#listenerSub">sub</a></li>
+              <li><a href="#listenerSubMonths">subMonths</a></li>
+              <li><a href="#listenerSubsAway">subsAway</a></li>
+              <li><a href="#listenerRoomstate">roomstate</a></li>
+            </ul>
+          </li>
+          <li>
+            <strong><a href="#funcSendChat">Functions - actions</a></strong>
+            <ul class="nav nav-pills nav-stacked">
+              <li><a href="#funcSendChat">sendChat</a></li>
+              <li><a href="#funcSendWhisper">sendWhisper</a></li>
+              <li><a href="#funcRunCommercial">runCommercial</a></li>
+              <li><a href="#funcSetStatusGame">setStatusGame</a></li>
+              <li><a href="#funcEmit">emit</a></li>
+            </ul>
+          </li>
+          <li>
+            <strong><a href="#funcGetUsername">Functions - information</a></strong>
+            <ul class="nav nav-pills nav-stacked">
+              <li><a href="#funcGetUsername">getUsername</a></li>
+              <li><a href="#funcGetChannel">getChannel</a></li>
+              <li><a href="#funcGetGame">getGame</a></li>
+              <li><a href="#funcGetStatus">getStatus</a></li>
+              <li><a href="#funcGetFollowerCount">getFollowerCount</a></li>
+              <li><a href="#funcGetTotalViewCount">getTotalViewCount</a></li>
+              <li><a href="#funcGetCurrentViewCount">getCurrentViewCount</a></li>
+              <li><a href="#funcGetCreatedAt">getCreatedAt</a></li>
+              <li><a href="#funcGetLogo">getLogo</a></li>
+              <li><a href="#funcGetVideoBanner">getVideoBanner</a></li>
+              <li><a href="#funcGetProfileBanner">getProfileBanner</a></li>
+              <li><a href="#funcGetDisplayName">getDisplayName</a></li>
+              <li><a href="#funcGetColor">getColor</a></li>
+              <li><a href="#funcGetEmoteSets">getEmoteSets</a></li>
+              <li><a href="#funcGetMod">getMod</a></li>
+              <li><a href="#funcGetSub">getSub</a></li>
+              <li><a href="#funcGetTurbo">getTurbo</a></li>
+              <li><a href="#funcGetUserType">getUserType</a></li>
+              <li><a href="#funcIsFollowing">isFollowing</a></li>
+              <li><a href="#funcIsSubscribing">isSubscribing</a></li>
+              <li><a href="#funcIsPartner">isPartner</a></li>
+              <li><a href="#funcGetSubBadgeUrl">getSubBadgeUrl</a></li>
+              <li><a href="#funcIsOnline">isOnline</a></li>
+              <li><a href="#funcGetFps">getFps</a></li>
+              <li><a href="#funcGetVideoHeight">getVideoHeight</a></li>
+              <li><a href="#funcGetDelay">getDelay</a></li>
+              <li><a href="#funcGetChatters">getChatters</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+
+
+    </div> <!-- row -->
+  </div> <!-- container -->
+
+</body>
+
+</html>
