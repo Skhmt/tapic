@@ -1,12 +1,11 @@
 /**
- * @title TAPIC.js
- * @overview Twitch API & Chat in javascript.
- * @author Skhmt
- * @license MIT
- * @version 3.1.0
- *
- * @module TAPIC
- */
+* @overview Twitch API & Chat in javascript.
+* @author Skhmt
+* @license MIT
+* @version 3.1.1
+*
+* @module TAPIC
+*/
 
 /*jshint
   esversion: 6,
@@ -60,12 +59,12 @@
     }
 
     /**
-     * Sets the clientid and oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
-     *
-     * @param  {string} clientid Your public clientid.
-     * @param  {string} oauth Your user's oauth token. See: https://github.com/justintv/Twitch-API/blob/master/authentication.md for instructions on how to do that.
-     * @param  {function} callback Callback that sends the username.
-     */
+    * Sets the clientid and oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
+    * @param  {string} clientid Your public clientid.
+    * @param  {string} oauth Your user's oauth token. See: https://github.com/justintv/Twitch-API/blob/master/authentication.md for instructions on how to do that.
+    * @param  {function} callback Callback that sends the username.
+    * @function setup
+    */
     TAPIC.setup = function (clientid, oauth, callback) {
       if (typeof clientid != 'string' || typeof oauth != 'string') {
         console.error('Invalid parameters. Usage: TAPIC.setup(clientid, oauth[, callback]);');
@@ -134,11 +133,11 @@
     };
 
     /**
-     * Joins a new channel. If you were already in a channel, this exits you from that channel first, then joins the new one.
-     *
-     * @param  {string} channel The channel name, with or without the #.
-     * @param  {function}  callback  Optional callback that's triggered once after the Twitch API has been polled the first time
-     */
+    * Joins a new channel. If you were already in a channel, this exits you from that channel first, then joins the new one.
+    * @param  {string} channel The channel name, with or without the #.
+    * @param  {function}  callback  Optional callback that's triggered once after the Twitch API has been polled the first time
+    * @function joinChannel
+    */
     TAPIC.joinChannel = function (channel, callback) {
       if (typeof channel != 'string') {
         console.error('Invalid parameters. Usage: TAPIC.joinChannel(channel);');
@@ -184,10 +183,10 @@
     };
 
     /**
-     * Sends a message to the channel. Actions such as /me, /host, etc work as normal. This is echoed back to the client if you listen for the "echoChat" event.
-     *
-     * @param  {string} message The message to send.
-     */
+    * Sends a message to the channel. Actions such as /me, /host, etc work as normal. This is echoed back to the client if you listen for the "echoChat" event.
+    * @param  {string} message The message to send.
+    * @function sendChat
+    */
     TAPIC.sendChat = function (message) {
       if (typeof message != 'string') {
         console.error('Invalid parameters. Usage: TAPIC.sendChat(message);');
@@ -201,11 +200,11 @@
     };
 
     /**
-     * Sends a whisper to a user. This is echoed back to the client if you listen for the "echoWhisper" event.
-     *
-     * @param  {string} user The target user to send the whisper to.
-     * @param  {string} message The message to send.
-     */
+    * Sends a whisper to a user. This is echoed back to the client if you listen for the "echoWhisper" event.
+    * @param  {string} user The target user to send the whisper to.
+    * @param  {string} message The message to send.
+    * @function sendWhisper
+    */
     TAPIC.sendWhisper = function (user, message) {
       if (typeof user != 'string' || typeof message != 'string') {
         console.error('Invalid parameters. Usage: TAPIC.sendWhisper(user, message);');
@@ -222,260 +221,260 @@
     };
 
     /**
-     * Gets the username of the bot.
-     *
-     * @return {string} The lowercase username.
-     */
+    * Gets the username of the bot.
+    * @return {string} The lowercase username.
+    * @function getUsername
+    */
     TAPIC.getUsername = function () {
       return _username;
     };
 
     /**
-     * Gets the channel name.
-     *
-     * @return {string} The channel name in lowercase.
-     */
+    * Gets the channel name.
+    * @return {string} The channel name in lowercase.
+    * @function getChannel
+    */
     TAPIC.getChannel = function () {
       return _channel;
     };
 
     /**
-     * Gets the online status of the channel.
-     *
-     * @return {boolean}  True if the channel is streaming, false if not.
-     */
+    * Gets the online status of the channel.
+    * @return {boolean}  True if the channel is streaming, false if not.
+    * @function isOnline
+    */
     TAPIC.isOnline = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _online;
     };
 
     /**
-     * Gets the status (title) of the channel. This works even if the channel is offline.
-     *
-     * @return {string}  The status.
-     */
+    * Gets the status (title) of the channel. This works even if the channel is offline.
+    * @return {string}  The status.
+    * @function getStatus
+    */
     TAPIC.getStatus = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _status;
     };
 
     /**
-     * Gets the game being played according to the channel owner. This works even if the channel is offline.
-     *
-     * @return {string}  The game.
-     */
+    * Gets the game being played according to the channel owner. This works even if the channel is offline.
+    * @return {string}  The game.
+    * @function getGame
+    */
     TAPIC.getGame = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _game;
     };
 
     /**
-     * Gets the number of followers of the channel.
-     *
-     * @return {number}  The follower count.
-     */
+    * Gets the number of followers of the channel.
+    * @return {number}  The follower count.
+    * @function getFollowerCount
+    */
     TAPIC.getFollowerCount = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _followerCount;
     };
 
     /**
-     * Gets the total (cumulative) viewer count of the channel.
-     *
-     * @return {number}  The total number of viewers.
-     */
+    * Gets the total (cumulative) viewer count of the channel.
+    * @return {number}  The total number of viewers.
+    * @function getTotalViewCount
+    */
     TAPIC.getTotalViewCount = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _totalViewCount;
     };
 
     /**
-     * Gets the partner status of the channel.
-     *
-     * @return {boolean}  Returns true if the channel is a Twitch partner, false if not.
-     */
+    * Gets the partner status of the channel.
+    * @return {boolean}  Returns true if the channel is a Twitch partner, false if not.
+    * @function isPartner
+    */
     TAPIC.isPartner = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _partner;
     };
 
     /**
-     * Gets the number of current logged-in viewers of the channel.
-     *
-     * @return {number}  The current number of logged-in viewers.
-     */
+    * Gets the number of current logged-in viewers of the channel.
+    * @return {number}  The current number of logged-in viewers.
+    * @function getCurrentViewCount
+    */
     TAPIC.getCurrentViewCount = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _currentViewCount;
     };
 
     /**
-     * Gets the channel's frames per second - generally 30 or 60.
-     *
-     * @return {number}  The FPS of the channel.
-     */
+    * Gets the channel's frames per second - generally 30 or 60.
+    * @return {number}  The FPS of the channel.
+    * @function getFps
+    */
     TAPIC.getFps = function () {
       if (!_online) return console.error('Stream not online.');
       return _fps;
     };
 
     /**
-     * Gets the height in pixels of the video. This is often 480, 720, or 1080.
-     *
-     * @return {number}  The height in pixels of the stream.
-     */
+    * Gets the height in pixels of the video. This is often 480, 720, or 1080.
+    * @return {number}  The height in pixels of the stream.
+    * @function getVideoHeight
+    */
     TAPIC.getVideoHeight = function () {
       if (!_online) return console.error('Stream not online.');
       return _videoHeight;
     };
 
     /**
-     * Gets the delay of the channel. This doesn't return the actual delay, just the intentionally added delay.
-     *
-     * @return {number}  The delay in seconds.
-     */
+    * Gets the delay of the channel. This doesn't return the actual delay, just the intentionally added delay.
+    * @return {number}  The delay in seconds.
+    * @function getDelay
+    */
     TAPIC.getDelay = function () {
       if (!_online) return console.error('Stream not online.');
       return _delay;
     };
 
     /**
-     * Gets the URL of the subscriber badge displayed to the left of the username in chat if the channel is partnered.
-     *
-     * @return {string}  The URL of the sub badge.
-     */
+    * Gets the URL of the subscriber badge displayed to the left of the username in chat if the channel is partnered.
+    * @return {string}  The URL of the sub badge.
+    * @function getSubBadgeUrl
+    */
     TAPIC.getSubBadgeUrl = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _subBadgeUrl;
     };
 
     /**
-     * Gets the current chatters in the channel. The returned object has 5 arrays: moderators, staff, admins, global_mods, and viewers. The arrays are simple lists of the viewers that belong to each category.
-     *
-     * @return {object}  An object of arrays.
-     */
+    * Gets the current chatters in the channel. The returned object has 5 arrays: moderators, staff, admins, global_mods, and viewers. The arrays are simple lists of the viewers that belong to each category.
+    * @return {object}  An object of arrays.
+    * @function getChatters
+    */
     TAPIC.getChatters = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _chatters;
     };
 
     /**
-     * Gets the time the stream started in the W3C date and time format, in UTC. ex: 2014-09-20T21:00:43Z
-     *
-     * @return {string}  The time the stream started.
-     */
+    * Gets the time the stream started in the W3C date and time format, in UTC. ex: 2014-09-20T21:00:43Z
+    * @return {string}  The time the stream started.
+    * @function getCreatedAt
+    */
     TAPIC.getCreatedAt = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _createdAt;
     };
 
     /**
-     * Gets the channel's 300x300px logo URL.
-     *
-     * @return {string}  The URL of the channel's logo.
-     */
+    * Gets the channel's 300x300px logo URL.
+    * @return {string}  The URL of the channel's logo.
+    * @function getLogo
+    */
     TAPIC.getLogo = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _logo;
     };
 
     /**
-     * Gets the channel's offline video banner/image URL.
-     *
-     * @return {string}  The URL of the channel's offline image.
-     */
+    * Gets the channel's offline video banner/image URL.
+    * @return {string}  The URL of the channel's offline image.
+    * @function getVideoBanner
+    */
     TAPIC.getVideoBanner = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _videoBanner;
     };
 
     /**
-     * Gets the channel's profile banner URL.
-     *
-     * @return {string}  The URL of the channel's profile banner.
-     */
+    * Gets the channel's profile banner URL.
+    * @return {string}  The URL of the channel's profile banner.
+    * @function getProfileBanner
+    */
     TAPIC.getProfileBanner = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _profileBanner;
     };
 
     /**
-     * Gets the display name of the user. This includes capitalization preferences.
-     *
-     * @return {string}  The display name of the user.
-     */
+    * Gets the display name of the user. This includes capitalization preferences.
+    * @return {string}  The display name of the user.
+    * @function getDisplayName
+    */
     TAPIC.getDisplayName = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _userDisplayName;
     };
 
     /**
-     * Gets the user's color preference for their username in chat. The format is hex and includes the leading #.
-     *
-     * @return {string}  Color of the username.
-     */
+    * Gets the user's color preference for their username in chat. The format is hex and includes the leading #.
+    * @return {string}  Color of the username.
+    * @function getColor
+    */
     TAPIC.getColor = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _userColor;
     };
 
     /**
-     * Gets the user's emote set in comma-delimited format.
-     *
-     * @return {string}  List of the user's emote sets.
-     */
+    * Gets the user's emote set in comma-delimited format.
+    * @return {string}  List of the user's emote sets.
+    * @function getEmoteSets
+    */
     TAPIC.getEmoteSets = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _userEmoteSets;
     };
 
     /**
-     * Gets the moderator status of the user in the channel.
-     *
-     * @return {boolean}  True if a moderator, false if not.
-     */
+    * Gets the moderator status of the user in the channel.
+    * @return {boolean}  True if a moderator, false if not.
+    * @function getMod
+    */
     TAPIC.getMod = function () {
       if (!_channel) return console.error('Not in a channel.');
       return (_userMod == 1);
     };
 
     /**
-     * Gets the subscriber status of the user in the channel.
-     *
-     * @return {boolean}  True if a subscriber, false if not.
-     */
+    * Gets the subscriber status of the user in the channel.
+    * @return {boolean}  True if a subscriber, false if not.
+    * @function getSub
+    */
     TAPIC.getSub = function () {
       if (!_channel) return console.error('Not in a channel.');
       return (_userSub == 1);
     };
 
     /**
-     * Gets the turbo status of the user.
-     *
-     * @return {boolean}  True if turbo, false if not.
-     */
+    * Gets the turbo status of the user.
+    * @return {boolean}  True if turbo, false if not.
+    * @function getTurbo
+    */
     TAPIC.getTurbo = function () {
       if (!_channel) return console.error('Not in a channel.');
       return (_userTurbo == 1);
     };
 
     /**
-     * Gets the user's usertype. For example, "staff".
-     *
-     * @return {string}  User's user type.
-     */
+    * Gets the user's usertype. For example, "staff".
+    * @return {string}  User's user type.
+    * @function getUserType
+    */
     TAPIC.getUserType = function () {
       if (!_channel) return console.error('Not in a channel.');
       return _userType;
     };
 
     /**
-     * Checks if "user" is following "channel". This is an asynchronous function and requires a callback.
-     *
-     * @param  {string} user     The user name to check.
-     * @param  {string} channel  The channel to check.
-     * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isFollowing (boolean) and dateFollowed (string).
-     */
+    * Checks if "user" is following "channel". This is an asynchronous function and requires a callback.
+    * @param  {string} user     The user name to check.
+    * @param  {string} channel  The channel to check.
+    * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isFollowing (boolean) and dateFollowed (string).
+    * @function isFollowing
+    */
     TAPIC.isFollowing = function (user, channel, callback) {
       // https://api.twitch.tv/kraken/users/skhmt/follows/channels/food
       if (typeof user != 'string' || typeof channel != 'string' || typeof callback != 'function') {
@@ -497,11 +496,11 @@
     };
 
     /**
-     * Checks if "user" is subscribed to the current channel. This is an asynchronous function and requires a callback. Requires the channel_check_subscription permission and the username and channel must be the same.
-     *
-     * @param  {string} user     The user name to check.
-     * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isSubscribing (boolean) and dateSubscribed (string).
-     */
+    * Checks if "user" is subscribed to the current channel. This is an asynchronous function and requires a callback. Requires the channel_check_subscription permission and the username and channel must be the same.
+    * @param  {string} user     The user name to check.
+    * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isSubscribing (boolean) and dateSubscribed (string).
+    * @function isSubscribing
+    */
     TAPIC.isSubscribing = function (user, channel, callback) {
       if (typeof user != 'string' || typeof callback != 'function') {
         console.error('Invalid parameters. Usage: TAPIC.isSubscribing(user, callback);');
@@ -526,10 +525,10 @@
     };
 
     /**
-     * Runs a commercial. Requires channel_commercial permission and the user must be an editor of the channel or the username must be the same as the channel. Commercials usually run for 30 seconds.
-     *
-     * @param  {number} length Amount of time to run the commercial in seconds.
-     */
+    * Runs a commercial. Requires channel_commercial permission and the user must be an editor of the channel or the username must be the same as the channel. Commercials usually run for 30 seconds.
+    * @param  {number} length Amount of time to run the commercial in seconds.
+    * @function runCommercial
+    */
     TAPIC.runCommercial = function (length) {
       if (typeof length != 'number') {
         console.error('Invalid parameters. Usage: TAPIC.runCommercial(length);');
@@ -564,11 +563,11 @@
     };
 
     /**
-     * Sets the status and game of the channel. Requires channel_editor permission.
-     *
-     * @param  {string} status The status/title of the channel.
-     * @param  {string} game   The game being played, or Creative or Music or whatever.
-     */
+    * Sets the status and game of the channel. Requires channel_editor permission.
+    * @param  {string} status The status/title of the channel.
+    * @param  {string} game   The game being played, or Creative or Music or whatever.
+    * @function setStatusGame
+    */
     TAPIC.setStatusGame = function (status, game) {
       if (typeof status != 'string' || typeof game != 'string') {
         console.error('Invalid parameters. Usage: TAPIC.setStatusGame(status, game);');
@@ -630,7 +629,9 @@
       }
     };
 
+    ////////////////////////////////////////////////////////////////////////////
     // Private functions
+    ////////////////////////////////////////////////////////////////////////////
 
     function _parseTags(tagString) {
       var output = new Map();
@@ -983,14 +984,16 @@
       }
     }
 
+    ////////////////////////////////////////////////////////////////////////////
     // Event system
+    ////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Listens for certain events, then runs the callback.
-     *
-     * @param  {string} eventName The name of the event.
-     * @param  {function} callback  What do do when the event happens.
-     */
+    * Listens for certain events, then runs the callback.
+    * @param  {string} eventName The name of the event.
+    * @param  {function} callback  What do do when the event happens.
+    * @function listen
+    */
     TAPIC.listen = function (eventName, callback) {
       if (typeof eventName != 'string') {
         console.error('Invalid parameters. Usage: TAPIC.listen(eventName[, callback]);');
@@ -1007,11 +1010,11 @@
     };
 
     /**
-     * Emits an event.
-     *
-     * @param  {string} eventName   The name of the event.
-     * @param  {any} eventDetail The parameter to send the callback.
-     */
+    * Emits an event.
+    * @param  {string} eventName   The name of the event.
+    * @param  {any} eventDetail The parameter to send the callback.
+    * @function emit
+    */
     TAPIC.emit = function (eventName, eventDetail) {
       if (typeof eventName != 'string' || typeof eventDetail != 'string') {
         console.error('Invalid parameters. Usage: TAPIC.emit(eventName, eventDetail);');
@@ -1029,11 +1032,132 @@
       }
     }
 
+    /**
+    * Every RAW TMI message from the standard chat server. You most likely won't be using this unless you need to parse for something that TAPIC.js doesn't already have a listener for.
+    * @event raw
+    * @property {string} - The raw message
+    */
+
+    /**
+    * A regular message (PRIVMSG in IRC). This includes actions (/me).
+    * @event message
+    * @property {string} from - The username of the person who sent the message.
+    * @property {string} text - The text of the message.
+    * @property {string} color - The color of the user name.
+    * @property {string} emotes - The emote id and character locations. See: https://github.com/justintv/Twitch-API/blob/master/IRC.md#privmsg.
+    * @property {boolean} action - True if it is an action (/me), false if it is a regular message.
+    * @property {boolean} streamer - True if the streamer (channel name) sent the message, false if it is anyone else.
+    * @property {boolean} mod - True if the user that sent the message is a moderator, false if not.
+    * @property {boolean} sub - True if the user that sent the message is a subscriber, false if not.
+    * @property {boolean} turbo - True if the user that sent the message has turbo, false if not.
+    * @property {array} badges - Array of badges, such as 'broadcaster/1', 'subscriber/1', and 'warcraft/alliance'.
+    * @property {number} room_id - The chatroom ID of the room the message was sent to.
+    * @property {number} user_id - The Twitch ID number of the user that sent the message.
+    */
+
+    /**
+    * A whisper sent to the user.
+    * @event whisper
+    * @property {string} from - The username of the person who sent the message.
+    * @property {string} to - The recipient of the whisper (the bot name).
+    * @property {string} text - The text of the message.
+    * @property {string} color - The color of the user name.
+    * @property {boolean} turbo - True if the user that sent the message has turbo, false if not.
+    * @property {array} badges - Array of badges, such as 'broadcaster/1', 'subscriber/1', and 'warcraft/alliance'.
+    * @property {number} message_id - The message id.
+    * @property {number} thread_id - The thread id.
+    * @property {number} user_id - The user id.
+    */
+
+    /**
+    * Echos chat messages sent by the bot to the chatroom.
+    * @event echoChat
+    * @property {string} - The text of the chat message.
+    */
+
+    /**
+    * Echos whispers sent by the bot.
+    * @event echoWhisper
+    * @property {string} to - The target of the whisper.
+    * @property {string} text - The text of the whisper.
+    */
+
+    /**
+    * Notices from the standard chat server. For example, the response of the /mods command.
+    * @event notice
+    * @property {string} - The notice.
+    */
+
+    /**
+    * When a user joins your channel. Fires for every user in the channel when you enter, so be careful on how you use this. This doesn't seem to be real-time, unlike real IRC.
+    * @event join
+    * @property {string} - The entering user's name.
+    */
+
+    /**
+    * When a user leaves your channel. This doesn't seem to be real-time, unlike real IRC.
+    * @event part
+    * @property {string} - The parting user's name.
+    */
+
+    /**
+    * This is sent when a user is timed out or banned or "purged" by a moderator. The default action should be to remove or hide all of that user's previous chat text.
+    * @event clearUser
+    * @property {string} name - The cleared user's name.
+    * @property {string} reason - The optional reason for timeout.
+    * @property {number} duration - The length of the timeout in seconds.
+    */
+
+    /**
+    * This is sent when a moderator wants to purge all of the chat. The default action should be to remove or hide all of the previous chatroom text.
+    * @event clearChat
+    */
+
+    /**
+    * This is sent when the user (not the channel) is hosted. If the logged in user is not the broadcaster, this will not be an accurate notification of hosts. To get host notifications if you're not logged in as the broadcaster, you need to use:  http://tmi.twitch.tv/hosts?include_logins=1&target=[user id number] (Won't work on a client-side browser - no CORS/JSONP support) or https://decapi.me/twitch/hosts?channel=[channel name] (CORS support. Thanks Decicus)
+    * @event host
+    * @property {string} - The user that hosted you.
+    */
+
+    /**
+    * This is sent when a user follows the channel. The limitation is about 100 follows per minute. Any more might get lost.
+    * @event follow
+    * @property {string} - The user that followed the channel.
+    */
+
+    /**
+    * First time subscription notification.
+    * @event sub
+    * @property {string} - The user that subscribed to the channel.
+    */
+
+    /**
+    * Resubscription and months and maybe message notification.
+    * @event subMonths
+    * @property {string} name - The name of the person that resubscribed.
+    * @property {number} months - Number of months subscribed. Alternatively, number resubscribes + 1.
+    * @property {string} message - Optional resub message.
+    */
+
+    /**
+    * Number of subscribers since you've been offline.
+    * @event subsAway
+    * @property {string} - Number of subscribers.
+    */
+
+    /**
+    * The roomstate options set on a room.
+    * @event roomstate
+    * @property {string} lang - The language of the room. Often left blank.
+    * @property {boolean} r9k - True if the room is in r9k mode, false if not.
+    * @property {boolean} slow - True if the room is in slow mode, false if not.
+    * @property {boolean} subs_only - True if the room is in subs (and mods) only mode, false if not.
+    */
+
     return TAPIC;
   } // define_TAPIC()
 
 
-  ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////
