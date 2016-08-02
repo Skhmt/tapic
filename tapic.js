@@ -2,7 +2,7 @@
 * @overview Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.1.1
+* @version 3.1.2
 *
 * @module TAPIC
 */
