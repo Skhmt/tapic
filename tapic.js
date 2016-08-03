@@ -2,7 +2,7 @@
 * @overview Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.1.3
+* @version 3.1.4
 *
 * @module TAPIC
 */
@@ -732,7 +732,8 @@
       var action = false;
       var text = textarray.slice(4);
       text[0] = text[0].substring(1); // removing colon
-      if (text[0] === '\001ACTION') {
+      var unicodeSOH = '\u0001';
+      if (text[0] === unicodeSOH + 'ACTION') {
         text = text.slice(1); // remove the word 'ACTION'
         action = true;
       }
