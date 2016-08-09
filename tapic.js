@@ -2,7 +2,7 @@
 * @overview Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.1.4
+* @version 3.1.5
 *
 * @module TAPIC
 */
@@ -711,7 +711,7 @@
         to: textarray[3],
         color: whisperTags.get('color'),
         emotes: whisperTags.get('emotes'),
-        turbo: whisperTags.get('turbo'),
+        turbo: (whisperTags.get('turbo') == 1),
         message_id: whisperTags.get('message-id'),
         thread_id: whisperTags.get('thread-id'),
         user_id: whisperTags.get('user-id'),
