@@ -2,7 +2,7 @@
 * @overview Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.1.5
+* @version 3.2.0
 *
 * @module TAPIC
 */
@@ -62,7 +62,7 @@
     * Sets the clientid and oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
     * @param  {string} clientid Your public clientid.
     * @param  {string} oauth Your user's oauth token. See: https://github.com/justintv/Twitch-API/blob/master/authentication.md for instructions on how to do that.
-    * @param  {function} callback Callback that sends the username.
+    * @param  {function} callback Calls back the username when TAPIC has successfully connected to Twitch.
     * @function setup
     */
     TAPIC.setup = function (clientid, oauth, callback) {
@@ -135,7 +135,7 @@
     /**
     * Joins a new channel. If you were already in a channel, this exits you from that channel first, then joins the new one.
     * @param  {string} channel The channel name, with or without the #.
-    * @param  {function}  callback  Optional callback that's triggered once after the Twitch API has been polled the first time
+    * @param  {function} callback Optional callback that's triggered after the Twitch API has been polled for the first time after joining.
     * @function joinChannel
     */
     TAPIC.joinChannel = function (channel, callback) {
@@ -240,7 +240,7 @@
 
     /**
     * Gets the online status of the channel.
-    * @return {boolean}  True if the channel is streaming, false if not.
+    * @return {boolean} True if the channel is streaming, false if not.
     * @function isOnline
     */
     TAPIC.isOnline = function () {
@@ -250,7 +250,7 @@
 
     /**
     * Gets the status (title) of the channel. This works even if the channel is offline.
-    * @return {string}  The status.
+    * @return {string} The status.
     * @function getStatus
     */
     TAPIC.getStatus = function () {
@@ -260,7 +260,7 @@
 
     /**
     * Gets the game being played according to the channel owner. This works even if the channel is offline.
-    * @return {string}  The game.
+    * @return {string} The game.
     * @function getGame
     */
     TAPIC.getGame = function () {
@@ -270,7 +270,7 @@
 
     /**
     * Gets the number of followers of the channel.
-    * @return {number}  The follower count.
+    * @return {number} The follower count.
     * @function getFollowerCount
     */
     TAPIC.getFollowerCount = function () {
@@ -280,7 +280,7 @@
 
     /**
     * Gets the total (cumulative) viewer count of the channel.
-    * @return {number}  The total number of viewers.
+    * @return {number} The total number of viewers.
     * @function getTotalViewCount
     */
     TAPIC.getTotalViewCount = function () {
@@ -290,7 +290,7 @@
 
     /**
     * Gets the partner status of the channel.
-    * @return {boolean}  Returns true if the channel is a Twitch partner, false if not.
+    * @return {boolean} Returns true if the channel is a Twitch partner, false if not.
     * @function isPartner
     */
     TAPIC.isPartner = function () {
@@ -300,7 +300,7 @@
 
     /**
     * Gets the number of current logged-in viewers of the channel.
-    * @return {number}  The current number of logged-in viewers.
+    * @return {number} The current number of logged-in viewers.
     * @function getCurrentViewCount
     */
     TAPIC.getCurrentViewCount = function () {
@@ -310,7 +310,7 @@
 
     /**
     * Gets the channel's frames per second - generally 30 or 60.
-    * @return {number}  The FPS of the channel.
+    * @return {number} The FPS of the channel.
     * @function getFps
     */
     TAPIC.getFps = function () {
@@ -320,7 +320,7 @@
 
     /**
     * Gets the height in pixels of the video. This is often 480, 720, or 1080.
-    * @return {number}  The height in pixels of the stream.
+    * @return {number} The height in pixels of the stream.
     * @function getVideoHeight
     */
     TAPIC.getVideoHeight = function () {
@@ -330,7 +330,7 @@
 
     /**
     * Gets the delay of the channel. This doesn't return the actual delay, just the intentionally added delay.
-    * @return {number}  The delay in seconds.
+    * @return {number} The delay in seconds.
     * @function getDelay
     */
     TAPIC.getDelay = function () {
@@ -340,7 +340,7 @@
 
     /**
     * Gets the URL of the subscriber badge displayed to the left of the username in chat if the channel is partnered.
-    * @return {string}  The URL of the sub badge.
+    * @return {string} The URL of the sub badge.
     * @function getSubBadgeUrl
     */
     TAPIC.getSubBadgeUrl = function () {
@@ -350,7 +350,7 @@
 
     /**
     * Gets the current chatters in the channel. The returned object has 5 arrays: moderators, staff, admins, global_mods, and viewers. The arrays are simple lists of the viewers that belong to each category.
-    * @return {object}  An object of arrays.
+    * @return {object} An object of arrays.
     * @function getChatters
     */
     TAPIC.getChatters = function () {
@@ -360,7 +360,7 @@
 
     /**
     * Gets the time the stream started in the W3C date and time format, in UTC. ex: 2014-09-20T21:00:43Z
-    * @return {string}  The time the stream started.
+    * @return {string} The time the stream started.
     * @function getCreatedAt
     */
     TAPIC.getCreatedAt = function () {
@@ -370,7 +370,7 @@
 
     /**
     * Gets the channel's 300x300px logo URL.
-    * @return {string}  The URL of the channel's logo.
+    * @return {string} The URL of the channel's logo.
     * @function getLogo
     */
     TAPIC.getLogo = function () {
@@ -380,7 +380,7 @@
 
     /**
     * Gets the channel's offline video banner/image URL.
-    * @return {string}  The URL of the channel's offline image.
+    * @return {string} The URL of the channel's offline image.
     * @function getVideoBanner
     */
     TAPIC.getVideoBanner = function () {
@@ -390,7 +390,7 @@
 
     /**
     * Gets the channel's profile banner URL.
-    * @return {string}  The URL of the channel's profile banner.
+    * @return {string} The URL of the channel's profile banner.
     * @function getProfileBanner
     */
     TAPIC.getProfileBanner = function () {
@@ -400,7 +400,7 @@
 
     /**
     * Gets the display name of the user. This includes capitalization preferences.
-    * @return {string}  The display name of the user.
+    * @return {string} The display name of the user.
     * @function getDisplayName
     */
     TAPIC.getDisplayName = function () {
@@ -410,7 +410,7 @@
 
     /**
     * Gets the user's color preference for their username in chat. The format is hex and includes the leading #.
-    * @return {string}  Color of the username.
+    * @return {string} Color of the username.
     * @function getColor
     */
     TAPIC.getColor = function () {
@@ -420,7 +420,7 @@
 
     /**
     * Gets the user's emote set in comma-delimited format.
-    * @return {string}  List of the user's emote sets.
+    * @return {string} List of the user's emote sets.
     * @function getEmoteSets
     */
     TAPIC.getEmoteSets = function () {
@@ -430,7 +430,7 @@
 
     /**
     * Gets the moderator status of the user in the channel.
-    * @return {boolean}  True if a moderator, false if not.
+    * @return {boolean} True if a moderator, false if not.
     * @function getMod
     */
     TAPIC.getMod = function () {
@@ -440,7 +440,7 @@
 
     /**
     * Gets the subscriber status of the user in the channel.
-    * @return {boolean}  True if a subscriber, false if not.
+    * @return {boolean} True if a subscriber, false if not.
     * @function getSub
     */
     TAPIC.getSub = function () {
@@ -450,7 +450,7 @@
 
     /**
     * Gets the turbo status of the user.
-    * @return {boolean}  True if turbo, false if not.
+    * @return {boolean} True if turbo, false if not.
     * @function getTurbo
     */
     TAPIC.getTurbo = function () {
@@ -460,7 +460,7 @@
 
     /**
     * Gets the user's usertype. For example, "staff".
-    * @return {string}  User's user type.
+    * @return {string} User's user type.
     * @function getUserType
     */
     TAPIC.getUserType = function () {
@@ -652,40 +652,52 @@
       _event('raw', text);
       var textarray = text.split(' ');
 
-      if (textarray[2] === 'PRIVMSG') { // chat
+      if (textarray[2] === 'PRIVMSG') {
+        // chat
         // :twitch_username!twitch_username@twitch_username.tmi.twitch.tv PRIVMSG #channel :message here
         _msgPriv(textarray);
-      } else if (textarray[1] === 'PRIVMSG') { // host
+      } else if (textarray[1] === 'PRIVMSG') {
+        // host
         _event('host', textarray[3].substring(1));
       } else if (textarray[2] === 'NOTICE') {
+        // notice
         // @msg-id=slow_off :tmi.twitch.tv NOTICE #channel :This room is no longer in slow mode.
         _msgNotice(textarray);
       } else if (textarray[1] === 'JOIN') {
+        // join
         // :twitch_username!twitch_username@twitch_username.tmi.twitch.tv JOIN #channel
         _msgJoin(textarray);
       } else if (textarray[1] === 'PART') {
+        // part
         // :twitch_username!twitch_username@twitch_username.tmi.twitch.tv PART #channel
         _msgPart(textarray);
       } else if (textarray[2] === 'ROOMSTATE') {
+        // roomstate
         // @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #channel
         _msgRoomstate(textarray);
       } else if (textarray[2] === 'WHISPER') {
+        // whisper
         // @badges=;color=#FF69B4;display-name=littlecatbot;emotes=;message-id=21;thread-id=71619374_108640872;turbo=0;user-id=108640872;user-type= :littlecatbot!littlecatbot@littlecatbot.tmi.twitch.tv WHISPER skhmt :hello world
         _msgWhisper(textarray);
-      } else if (textarray[1] === 'CLEARCHAT') { // clear chat
+      } else if (textarray[1] === 'CLEARCHAT') {
+        // clear chat
         // :tmi.twitch.tv CLEARCHAT #channel
         _event('clearChat');
-      } else if (textarray[2] === 'CLEARCHAT') { // ban/timeout
+      } else if (textarray[2] === 'CLEARCHAT') {
+        // ban/timeout
         // @ban-duration=1;ban-reason=Follow\sthe\srules :tmi.twitch.tv CLEARCHAT #channel :target_username
         // @ban-reason=Follow\sthe\srules :tmi.twitch.tv CLEARCHAT #channel :target_username
         _msgBan(textarray);
       } else if (textarray[2] === 'USERSTATE') {
+        // userstate
         // @color=#0D4200;display-name=UserNaME;emote-sets=0,33;mod=1;subscriber=1;turbo=1;user-type=staff :tmi.twitch.tv USERSTATE #channel
         _msgUserstate(textarray);
-      } else if (textarray[2] === 'USERNOTICE') { // sub notifications for now, may change in the future
+      } else if (textarray[2] === 'USERNOTICE') {
+        // sub notifications for now, may change in the future
         // @badges=staff/1,broadcaster/1,turbo/1;color=#008000;display-name=TWITCH_UserName;emotes=;mod=0;msg-id=resub;msg-param-months=6;room-id=1337;subscriber=1;system-msg=TWITCH_UserName\shas\ssubscribed\sfor\s6\smonths!;login=twitch_username;turbo=1;user-id=1337;user-type=staff :tmi.twitch.tv USERNOTICE #channel :Great stream -- keep it up!
         _msgSub(textarray);
       } else {
+        // not recognized by anything else
         // if ( text ) console.info( text );
       }
     }
@@ -841,9 +853,16 @@
       var follows = false;
       var chatters = false;
 
+      function _pingFinished() {
+        if (streams && channels && follows && chatters) {
+          if (typeof callback === 'function') callback();
+          _event('update');
+        }
+      }
+
       _getJSON(
         'https://api.twitch.tv/kraken/streams/' + _channel + '?client_id=' + _clientid + '&api_version=3',
-        function(res) {
+        function (res) {
           if (res.stream) {
             _online = true;
             _currentViewCount = res.stream.viewers;
@@ -855,13 +874,13 @@
           }
 
           streams = true;
-          if (streams && channels && follows && chatters && typeof callback == 'function') callback();
+          _pingFinished();
         }
       );
 
       _getJSON(
         'https://api.twitch.tv/kraken/channels/' + _channel + '?client_id=' + _clientid + '&api_version=3',
-        function(res) {
+        function (res) {
           _game = res.game;
           _status = res.status;
           _followerCount = res.followers;
@@ -873,13 +892,13 @@
           _profileBanner = res.profile_banner;
 
           channels = true;
-          if (streams && channels && follows && chatters && typeof callback == 'function') callback();
+          _pingFinished();
         }
       );
 
       _getJSON(
         'https://api.twitch.tv/kraken/channels/' + _channel + '/follows?client_id=' + _clientid + '&api_version=3&limit=100',
-        function(res) {
+        function (res) {
           // https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
           if (!res.follows) return;
 
@@ -897,13 +916,13 @@
           }
 
           follows = true;
-          if (streams && channels && follows && chatters && typeof callback == 'function') callback();
+          _pingFinished();
         }
       );
 
       _getJSON(
         'https://tmi.twitch.tv/group/user/' + _channel + '/chatters?client_id=' + _clientid + '&api_version=3',
-        function(res) {
+        function (res) {
           if (!_isNode) { // using _getJSON with this API endpoint adds "data" to the object
             res = res.data;
           }
@@ -920,7 +939,7 @@
           _chatters.viewers = res.chatters.viewers.slice();
 
           chatters = true;
-          if (streams && channels && follows && chatters && typeof callback == 'function') callback();
+          _pingFinished();
         }
       );
 
@@ -936,7 +955,7 @@
     function _getSubBadgeUrl(callback) {
       _getJSON(
         'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3&client_id=' + _clientid,
-        function(res) {
+        function (res) {
           if (res.subscriber) {
             _subBadgeUrl = res.subscriber.image;
           }
@@ -1112,6 +1131,11 @@
     /**
     * This is sent when a moderator wants to purge all of the chat. The default action should be to remove or hide all of the previous chatroom text.
     * @event clearChat
+    */
+
+    /**
+    * This is sent when the app state has been updated with the latest Twitch API data. That doesn't necessarilly mean the data is different, only that it's the most recent data.
+    * @event update
     */
 
     /**
