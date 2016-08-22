@@ -2,7 +2,7 @@
 * @overview Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.2.0
+* @version 3.2.1
 *
 * @module TAPIC
 */
@@ -81,7 +81,7 @@
       }
 
       _getJSON(
-        'https://api.twitch.tv/kraken?client_id=' + _clientid + '&oauth_token=' + _oauth + '&api_version=3',
+        'https://api.twitch.tv/kraken',
         function (res) {
           _username = res.token.user_name;
 
@@ -482,7 +482,7 @@
         return;
       }
       _getJSON(
-        'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel + '?api_version=3&client_id=' + _clientid,
+        'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel,
         function (res) {
           if (res.error) callback({
             isFollowing: false
@@ -501,14 +501,14 @@
     * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isSubscribing (boolean) and dateSubscribed (string).
     * @function isSubscribing
     */
-    TAPIC.isSubscribing = function (user, channel, callback) {
+    TAPIC.isSubscribing = function (user, callback) {
       if (typeof user != 'string' || typeof callback != 'function') {
         console.error('Invalid parameters. Usage: TAPIC.isSubscribing(user, callback);');
         return;
       }
       // https://api.twitch.tv/kraken/channels/test_channel/subscriptions/testuser
       _getJSON(
-        'https://api.twitch.tv/kraken/channels/' + _channel + '/subscriptions/' + user + '?api_version=3client_id=' + _clientid,
+        'https://api.twitch.tv/kraken/channels/' + _channel + '/subscriptions/' + user,
         function (res) {
           if (res.error) {
             callback({
@@ -861,7 +861,7 @@
       }
 
       _getJSON(
-        'https://api.twitch.tv/kraken/streams/' + _channel + '?client_id=' + _clientid + '&api_version=3',
+        'https://api.twitch.tv/kraken/streams/' + _channel,
         function (res) {
           if (res.stream) {
             _online = true;
@@ -879,7 +879,7 @@
       );
 
       _getJSON(
-        'https://api.twitch.tv/kraken/channels/' + _channel + '?client_id=' + _clientid + '&api_version=3',
+        'https://api.twitch.tv/kraken/channels/' + _channel,
         function (res) {
           _game = res.game;
           _status = res.status;
@@ -897,7 +897,8 @@
       );
 
       _getJSON(
-        'https://api.twitch.tv/kraken/channels/' + _channel + '/follows?client_id=' + _clientid + '&api_version=3&limit=100',
+        'https://api.twitch.tv/kraken/channels/' + _channel + '/follows',
+        '&limit=100',
         function (res) {
           // https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
           if (!res.follows) return;
@@ -921,7 +922,7 @@
       );
 
       _getJSON(
-        'https://tmi.twitch.tv/group/user/' + _channel + '/chatters?client_id=' + _clientid + '&api_version=3',
+        'https://tmi.twitch.tv/group/user/' + _channel + '/chatters',
         function (res) {
           if (!_isNode) { // using _getJSON with this API endpoint adds "data" to the object
             res = res.data;
@@ -954,7 +955,7 @@
     // This is only needed once per channel and it requires its own ajax call, so it isn't included in _pingAPI()
     function _getSubBadgeUrl(callback) {
       _getJSON(
-        'https://api.twitch.tv/kraken/chat/' + _channel + '/badges?api_version=3&client_id=' + _clientid,
+        'https://api.twitch.tv/kraken/chat/' + _channel + '/badges',
         function (res) {
           if (res.subscriber) {
             _subBadgeUrl = res.subscriber.image;
@@ -966,7 +967,18 @@
       );
     }
 
-    function _getJSON(url, callback) {
+    function _getJSON(path, params, callback) {
+      var oauthString = '?oauth_token=' + _oauth;
+      var apiString = '&api_version=3';
+      var clientString = '&client_id=' + _clientid;
+
+      var url = path + oauthString + apiString + clientString;
+      if (typeof params === 'string') {
+        url += params;
+      } else if (typeof params === 'function') {
+        callback = params;
+      }
+
       if (typeof callback !== 'function') return console.error('Callback needed.');
       if (_isNode) { // No jsonp required, so using http.get
         var http = require('https');
