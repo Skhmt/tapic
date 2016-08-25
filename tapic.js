@@ -2,7 +2,7 @@
 * @overview Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.2.1
+* @version 3.2.2
 *
 * @module TAPIC
 */
@@ -802,22 +802,18 @@
     }
 
     function _msgBan(textarray) {
-      var clearinfoarray = textarray[0].slice(1).split(';'); // remove leading '@' and split
-      var banreason = '';
-      var banduration = 1;
-      for (var j = 0; j < clearinfoarray.length; j++) {
-        var clearinfoparams = clearinfoarray[j].split('=');
-        if (clearinfoparams[0] === 'ban-duration') {
-          banduration = clearinfoparams[1];
-        } else if (clearinfoparams[0] === 'ban-reason') {
-          banreason = clearinfoparams[1].replace(/\\s/g, ' ');
-        }
-      }
-      var clearname = textarray[4].slice(1); // remove leading ':'
+      var banTags = _parseTags(textarray[0]);
+
+      let reason = banTags.get('ban-reason');
+      if (typeof reason === 'string') reason = reason.replace(/\\s/g, ' ');
+
+      let duration = banTags.get('ban-duration');
+      if (typeof duration === 'undefined') duration = 0;
+
       _event('clearUser', {
-        name: clearname,
-        reason: banreason,
-        duration: banduration
+        name: textarray[4].slice(1),
+        reason: reason,
+        duration: duration
       });
     }
 
