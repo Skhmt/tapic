@@ -2,7 +2,7 @@
 * @overview Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.2.2
+* @version 3.2.3
 *
 * @module TAPIC
 */
@@ -1199,7 +1199,6 @@
   if (typeof Map !== 'function') {
     window.Map = function () {
       var _dict = Object.create(null);
-
       var map = {};
 
       map.size = 0;
@@ -1207,8 +1206,14 @@
         return _dict[key];
       };
       map.set = function (key, value) {
+        if (!_dict[key]) map.size++;
         _dict[key] = value;
-        map.size++;
+      };
+      map.delete = function (key) {
+        if (!!_dict[key]) {
+          delete _dict[key];
+          map.size--;
+        }
       };
       map.has = function (key) {
         return !!_dict[key];
