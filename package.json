@@ -17,7 +17,7 @@
     "twitch"
   ],
   "license": "MIT",
-  "main": "tapic.js",
+  "main": "dist/tapic.js",
   "maintainers": [
     {
       "email": "koshinn@gmail.com",
@@ -31,5 +31,5 @@
     "url": "git+https://github.com/skhmt/tapic.js.git"
   },
   "scripts": {},
-  "version": "3.2.2"
+  "version": "3.2.3"
 }

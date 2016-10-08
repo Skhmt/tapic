@@ -1,0 +1,30 @@
+<html>
+<body>
+  <div id="chat" style="width: 1600px; height: 800px; overflow-y: scroll;">
+  </div>
+  <script src="../../dist/tapic.js"></script>
+  <script>
+    let clientid = '';
+    let oauth = '';
+
+    let channel = 'capcomfighters';
+
+    TAPIC.listen('raw', function (res) {
+      let $chat = document.getElementById('chat');
+      const isScrolledToBottom = $chat.scrollHeight - $chat.clientHeight <= $chat.scrollTop + 5;
+
+      // add message
+      $chat.innerHTML += '<p>' + res + '</p>';
+
+      // if it was scrolled to the bottom before the message was appended, scroll to the bottom
+      if (isScrolledToBottom) $chat.scrollTop = Number.MAX_SAFE_INTEGER;
+    });
+
+    TAPIC.setup(clientid, oauth, function (username) {
+      TAPIC.joinChannel(channel, function () {
+      });
+    });
+
+  </script>
+</body>
+</html>
