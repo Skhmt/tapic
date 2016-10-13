@@ -60,107 +60,114 @@
 	* @module TAPIC
 	*/
 
-	(function () {
+	// exporting if node, defining as a global function if browser
+	if (__webpack_require__(2)) module.exports = define_TAPIC();
+	else window.TAPIC = define_TAPIC();
 
-	  function define_TAPIC() {
+	function define_TAPIC() {
 
-	    let TAPIC = {}; // this is the return object
-	    let state = __webpack_require__(2);
-	    let _ws;
-	    let _ps;
-	    let _refreshRate = 5; // check the Twitch API every [this many] seconds
-	    let _event = __webpack_require__(3)(TAPIC);
-	    let _parseMessage = __webpack_require__(4)(state, _event);
-	    let _pingAPI = __webpack_require__(5)(state, _event);
-	    let _getJSON = __webpack_require__(6)(state);
-	    let _getSubBadgeUrl = __webpack_require__(9)(state, _getJSON);
+	  let TAPIC = {}; // this is the return object
+	  let state = __webpack_require__(3);
+	  let _ws;
+	  let _refreshRate = 5; // check the Twitch API every [this many] seconds
+	  let _event = __webpack_require__(4)(TAPIC);
+	  let _getJSON = __webpack_require__(5)(state);
+	  let _parseMessage = __webpack_require__(7)(state, _event);
+	  let _pingAPI = __webpack_require__(8)(state, _event);
+	  let _getSubBadgeUrl = __webpack_require__(9)(state, _getJSON);
 
-	    /**
-	    * Sets the clientid and oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
-	    * @param  {string} clientid Your public clientid.
-	    * @param  {string} oauth Your user's oauth token. See: https://github.com/justintv/Twitch-API/blob/master/authentication.md for instructions on how to do that.
-	    * @param  {function} callback Calls back the username when TAPIC has successfully connected to Twitch.
-	    * @function setup
-	    */
-	    TAPIC.setup = function (clientid, oauth, callback) {
-	      if (typeof clientid != 'string' || typeof oauth != 'string') {
-	        console.error('Invalid parameters. Usage: TAPIC.setup(clientid, oauth[, callback]);');
+	  /**
+	  * Sets the clientid and oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
+	  * @param  {string} clientid Your public clientid.
+	  * @param  {string} oauth Your user's oauth token. See: https://github.com/justintv/Twitch-API/blob/master/authentication.md for instructions on how to do that.
+	  * @param  {function} callback Calls back the username when TAPIC has successfully connected to Twitch.
+	  * @function setup
+	  */
+	  TAPIC.setup = function (clientid, oauth, callback) {
+	    if (typeof clientid != 'string' || typeof oauth != 'string') {
+	      console.error('Invalid parameters. Usage: TAPIC.setup(clientid, oauth[, callback]);');
+	      return;
+	    }
+	    state.clientid = clientid;
+	    state.oauth = oauth.replace('oauth:', '');
+
+	    _getJSON('https://api.twitch.tv/kraken', function (res) {
+	      if (res.error && res.error === "Bad Request") {
+	        console.error('Invalid Client ID or Oauth token.');
 	        return;
 	      }
-	      state.clientid = clientid;
-	      state.oauth = oauth.replace('oauth:', '');
-
-	      _getJSON('https://api.twitch.tv/kraken', function (res) {
-	        state.username = res.token.user_name;
-	        _getJSON('https://api.twitch.tv/users/' + state.username, function (res) {
-	          state.id = res._id;
-	          _init(callback);
-	        });
+	      state.username = res.token.user_name;
+	      _getJSON('https://api.twitch.tv/kraken/users/' + state.username, function (res) {
+	        state.id = res._id;
+	        _init(callback);
 	      });
-	    };
+	    });
+	  };
 
-	    function _init(callback) {
-	      // setting up websockets
-	      const twitchWS = 'wss://irc-ws.chat.twitch.tv:443';
-	      const twitchPS = 'wss://pubsub-edge.twitch.tv';
-	      if (__webpack_require__(7)) {
-	        let WS = __webpack_require__(10);
-	        _ws = new WS(twitchWS);
-	        _ps = new WS(twitchPS);
-	      } else {
-	        _ws = new WebSocket(twitchWS);
-	        _ps = new WebSocket(twitchPS);
-	      }
-
-	      __webpack_require__(11)(state, _ws, _parseMessage, callback);
-	      __webpack_require__(12)(state, _ps, _event);
-
-	      // TAPIC.joinChannel(channel, callback)
-	      __webpack_require__(13)(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate);
-
-	      // TAPIC.sendChat(message)
-	      __webpack_require__(14)(TAPIC, state, _ws, _event);
-
-	      // TAPIC.sendWhisper(user, message)
-	      __webpack_require__(15)(TAPIC, _ws, _event);
-
-	      // TAPIC.isFollowing(user, channel, callback)
-	      __webpack_require__(16)(TAPIC, _getJSON);
-
-	      // TAPIC.isSubscribing(user, callback)
-	      __webpack_require__(17)(TAPIC, state, _getJSON);
-
-	      // TAPIC.get[...]
-	      __webpack_require__(18)(TAPIC, state);
-
-	      // TAPIC.runCommercial(length)
-	      __webpack_require__(19)(TAPIC, state);
-
-	      // TAPIC.setStatusGame(status, game)
-	      __webpack_require__(20)(TAPIC, state);
-	    } // init()
-
-	    __webpack_require__(21);
-
-	    return TAPIC;
-	  } // define_TAPIC()
-
-	  // exporting if node, defining as a function if browser
-	  if (__webpack_require__(7)) { // node.js
-	    module.exports = define_TAPIC();
-	  } else { // regular js
-	    if (typeof TAPIC === 'undefined') {
-	      window.TAPIC = define_TAPIC();
+	  function _init(callback) {
+	    // setting up websockets
+	    const twitchWS = 'wss://irc-ws.chat.twitch.tv:443';
+	    if (__webpack_require__(2)) {
+	      let WS = __webpack_require__(10);
+	      _ws = new WS(twitchWS);
 	    } else {
-	      console.error('TAPIC already defined.');
+	      _ws = new WebSocket(twitchWS);
 	    }
-	  }
 
-	})();
+	    __webpack_require__(11)(state, _ws, _parseMessage, callback);
+	    __webpack_require__(12)(state, _event);
+
+	    // TAPIC.joinChannel(channel, callback)
+	    __webpack_require__(13)(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate);
+
+	    // TAPIC.sendChat(message)
+	    __webpack_require__(14)(TAPIC, state, _ws, _event);
+
+	    // TAPIC.sendWhisper(user, message)
+	    __webpack_require__(15)(TAPIC, _ws, _event);
+
+	    // TAPIC.isFollowing(user, channel, callback)
+	    __webpack_require__(16)(TAPIC, _getJSON);
+
+	    // TAPIC.isSubscribing(user, callback)
+	    __webpack_require__(17)(TAPIC, state, _getJSON);
+
+	    // TAPIC.get[...]
+	    __webpack_require__(18)(TAPIC, state);
+
+	    // TAPIC.runCommercial(length)
+	    __webpack_require__(19)(TAPIC, state);
+
+	    // TAPIC.setStatusGame(status, game)
+	    __webpack_require__(20)(TAPIC, state);
+	  } // init()
+
+	  __webpack_require__(21);
+
+	  return TAPIC;
+	}
 
 
 /***/ },
 /* 2 */
+/***/ function(module, exports) {
+
+	/*
+	  returns true for node.js or nw.js
+
+	  Context   window  nw
+	  browser	  object  -
+	  node.js   -       -
+	  nw.js	    object	object
+	*/
+
+	module.exports = (function(){
+	  return (typeof window !== 'object' || typeof nw === 'object' );
+	})();
+
+
+/***/ },
+/* 3 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -197,7 +204,7 @@
 
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports) {
 
 	module.exports = function (TAPIC) {
@@ -252,7 +259,79 @@
 
 
 /***/ },
-/* 4 */
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = function (state) {
+	  function _getJSON (path, params, callback) {
+	    const oauthString = '?oauth_token=' + state.oauth;
+	    const apiString = '&api_version=3';
+	    const clientString = '&client_id=' + state.clientid;
+
+	    let url = path + oauthString + apiString + clientString;
+	    if (typeof params === 'string') {
+	      url += params;
+	    } else if (typeof params === 'function') {
+	      callback = params;
+	    }
+
+	    if (typeof callback !== 'function') return console.error('Callback needed.');
+	    if (__webpack_require__(2)) { // No jsonp required, so using http.get
+	      let http = __webpack_require__(6);
+	      http.get(url, function (res) {
+	        let output = '';
+	        res.setEncoding('utf8');
+	        res.on('data', function (chunk) {
+	          output += chunk;
+	        });
+	        res.on('end', function () {
+	          if (res.statusCode >= 200 && res.statusCode < 400) {
+	            callback(JSON.parse(output));
+	          } else { // error
+	            console.error(output);
+	          }
+	        });
+	      }).on('error', function (e) {
+	          console.error(e.message);
+	      });
+	    } else {
+	      // Keep trying to make a random callback name until it finds a unique one.
+	      let randomCallback;
+	      do {
+	        randomCallback = 'tapicJSONP' + Math.floor(Math.random() * 1000000000);
+	      } while (window[randomCallback]);
+
+	      window[randomCallback] = function (json) {
+	        callback(json);
+	        delete window[randomCallback]; // Cleanup the window object
+	      };
+
+	      let node = document.createElement('script');
+	      node.src = url + '&callback=' + randomCallback;
+	      try {
+	        document.getElementById('tapicJsonpContainer').appendChild(node);
+	      } catch(e) {
+	        let tapicContainer = document.createElement('div');
+	        tapicContainer.id = 'tapicJsonpContainer';
+	        tapicContainer.style.cssText = 'display:none;';
+	        document.getElementsByTagName('body')[0].appendChild(tapicContainer);
+	        document.getElementById('tapicJsonpContainer').appendChild(node);
+	      }
+
+	    }
+	  }
+	  return _getJSON;
+	};
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	module.exports = require('https');
+
+/***/ },
+/* 7 */
 /***/ function(module, exports) {
 
 	module.exports = function (state, _event) {
@@ -474,12 +553,12 @@
 
 
 /***/ },
-/* 5 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	module.exports = function (state, _event, _refreshRate) {
 
-	  let _getJSON = __webpack_require__(6)(state)
+	  let _getJSON = __webpack_require__(5)(state)
 
 	  function _pingAPI(refresh, callback) {
 
@@ -561,7 +640,7 @@
 	    _getJSON(
 	      'https://tmi.twitch.tv/group/user/' + state.channel + '/chatters',
 	      function (res) {
-	        if (!__webpack_require__(7)) { // using _getJSON with this API endpoint adds "data" to the object
+	        if (!__webpack_require__(2)) { // using _getJSON with this API endpoint adds "data" to the object
 	          res = res.data;
 	        }
 
@@ -582,7 +661,7 @@
 	    );
 
 	    setTimeout(function () {
-	      if (!__webpack_require__(7)) {
+	      if (!__webpack_require__(2)) {
 	        document.getElementById('tapicJsonpContainer').innerHTML = '';
 	      }
 	      _pingAPI(refresh);
@@ -592,96 +671,6 @@
 	  return _pingAPI;
 	};
 
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = function (state) {
-	  function _getJSON (path, params, callback) {
-	    const oauthString = '?oauth_token=' + state.oauth;
-	    const apiString = '&api_version=3';
-	    const clientString = '&client_id=' + state.clientid;
-
-	    let url = path + oauthString + apiString + clientString;
-	    if (typeof params === 'string') {
-	      url += params;
-	    } else if (typeof params === 'function') {
-	      callback = params;
-	    }
-
-	    if (typeof callback !== 'function') return console.error('Callback needed.');
-	    if (__webpack_require__(7)) { // No jsonp required, so using http.get
-	      let http = __webpack_require__(8);
-	      http.get(url, function (res) {
-	        let output = '';
-	        res.setEncoding('utf8');
-	        res.on('data', function (chunk) {
-	          output += chunk;
-	        });
-	        res.on('end', function () {
-	          if (res.statusCode >= 200 && res.statusCode < 400) {
-	            callback(JSON.parse(output));
-	          } else { // error
-	            console.error(output);
-	          }
-	        });
-	      }).on('error', function (e) {
-	          console.error(e.message);
-	      });
-	    } else {
-	      // Keep trying to make a random callback name until it finds a unique one.
-	      let randomCallback;
-	      do {
-	        randomCallback = 'tapicJSONP' + Math.floor(Math.random() * 1000000000);
-	      } while (window[randomCallback]);
-
-	      window[randomCallback] = function (json) {
-	        callback(json);
-	        delete window[randomCallback]; // Cleanup the window object
-	      };
-
-	      let node = document.createElement('script');
-	      node.src = url + '&callback=' + randomCallback;
-	      try {
-	        document.getElementById('tapicJsonpContainer').appendChild(node);
-	      } catch(e) {
-	        let tapicContainer = document.createElement('div');
-	        tapicContainer.id = 'tapicJsonpContainer';
-	        tapicContainer.style.cssText = 'display:none;';
-	        document.getElementsByTagName('body')[0].appendChild(tapicContainer);
-	        document.getElementById('tapicJsonpContainer').appendChild(node);
-	      }
-
-	    }
-	  }
-	  return _getJSON;
-	};
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	/*
-	  returns true for node.js or nw.js
-
-	  Context   window  nw
-	  browser	  object  -
-	  node.js   -       -
-	  nw.js	    object	object
-	*/
-
-	module.exports = (function(){
-	  return (typeof window !== 'object' || typeof nw === 'object' );
-	})();
-
-
-/***/ },
-/* 8 */
-/***/ function(module, exports) {
-
-	module.exports = require('https');
 
 /***/ },
 /* 9 */
@@ -717,7 +706,7 @@
 
 	module.exports = function (state, _ws, _parseMessage, callback) {
 	  // handling messages
-	  if (__webpack_require__(7)) {
+	  if (__webpack_require__(2)) {
 	    _ws.on('open', wsOpen);
 	    _ws.on('message', wsMessage);
 	  } else {
@@ -734,7 +723,7 @@
 	  function wsMessage(event) {
 	    let messages;
 	    // websockets can have multiple separate messages per event
-	    if (__webpack_require__(7)) messages = event.split('\r\n');
+	    if (__webpack_require__(2)) messages = event.split('\r\n');
 	    else messages = event.data.split('\r\n');
 
 	    for (let i = 0; i < messages.length; i++) {
@@ -754,35 +743,88 @@
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function (state, _ps, _event) {
-	  // handling messages
-	  if (__webpack_require__(7)) {
-	    _ps.on('open', psOpen);
-	    _ps.on('message', psMessage);
-	  } else {
-	    _ps.onopen = psOpen;
-	    _ps.onmessage = psMessage;
+	module.exports = function (state, _event) {
+	  let ps;
+
+	  connect();
+	  function connect() {
+	    const url = 'wss://pubsub-edge.twitch.tv';
+	    if (__webpack_require__(2)) {
+	      let WS = __webpack_require__(10);
+	      ps = new WS(url);
+	      ps.on('open', psOpen);
+	      ps.on('message', psMessage);
+	    }
+	    else {
+	      ps = new WebSocket(url);
+	      ps.onopen = psOpen;
+	      ps.onmessage = psMessage;
+	    }
 	  }
 
-	  // https://github.com/justintv/Twitch-API/tree/master/PubSub#receiving-messages
-	  // https://discuss.dev.twitch.tv/t/in-line-broadcaster-chat-mod-logs/7281
+	  // https://dev.twitch.tv/docs/PubSub/overview/
 	  function psOpen() {
-	    _ps.send('{"type":"PING"}');
 	    let frame = {
 	      type: 'LISTEN',
 	      data: {
 	        topics: [
-	          "chat_moderator_actions." + state.id,
-	        ]
+	          'chat_moderator_actions.' + state.id + '.' + state.id,
+	          'channel-bitsevents.' + state.id,
+	        ],
+	        auth_token: state.oauth,
 	      },
-	      auth_token: state.oauth,
 	    };
-	    _ps.send(JSON.stringify(frame));
+	    ps.send(JSON.stringify(frame));
+	    ping();
+	  }
+
+	  function ping() {
+	    ps.send(JSON.stringify({type:"PING"}));
+	    setTimeout(ping, 120000); // 120,000 = 2 minutes
 	  }
 
 	  function psMessage(event) {
 	    let message = JSON.parse(event.data);
-	    console.log(message)
+	    console.log(message);
+	    switch (message.type) {
+	      case 'PONG':
+	        break;
+	      case 'RECONNECT':
+	        connect();
+	        break;
+	      case 'RESPONSE':
+	        break;
+	      case 'MESSAGE':
+	        parseMessage(message.data);
+	        break;
+	      default:
+	        console.log('Unknown message type received in pubsub.');
+	        console.log(message);
+	        break;
+	    }
+	  }
+
+	  // data is message.data, so it should have msg.topic and msg.message
+	  function parseMessage(data) {
+	    switch (data.topic) {
+	      // https://dev.twitch.tv/docs/PubSub/bits/
+	      case 'channel-bitsevents.' + state.id:
+	        const username = data.message.user_name;
+	        const note = data.message.chat_message;
+	        const bits = data.message.bits_used;
+	        const totalBits = data.message.total_bits_used;
+	        _event('bits', {username, note, bits, totalBits});
+	        break;
+	      // https://discuss.dev.twitch.tv/t/in-line-broadcaster-chat-mod-logs/7281/12
+	      case 'chat_moderator_actions.' + state.id + '.' + state.id:
+	        const action = data.message.moderation_action;
+	        const username = data.message.created_by;
+	        const args = data.message.args;
+	        _event('moderation', {username, action, args});
+	        break;
+	      default:
+	        break;
+	    }
 	  }
 	};
 
@@ -1246,7 +1288,7 @@
 	    const path = '/kraken/channels/' + state.channel + '/commercial?oauth_token=' + state.oauth;
 	    const url = host + path;
 
-	    if (__webpack_require__(7)) {
+	    if (__webpack_require__(2)) {
 	      let options = {
 	        host: host,
 	        path: path,
@@ -1256,7 +1298,7 @@
 	          'Client-ID': state.clientid
 	        }
 	      };
-	      let http = __webpack_require__(8);
+	      let http = __webpack_require__(6);
 	      http.request(options).write('length=' + length).end();
 	    } else {
 	      let xhr = new XMLHttpRequest();
@@ -1292,7 +1334,7 @@
 	        path += '&channel[game]=' + encodeURIComponent(game);
 	        path += '&_method=put&oauth_token=' + state.oauth;
 
-	    if (__webpack_require__(7)) {
+	    if (__webpack_require__(2)) {
 	      let options = {
 	        host: host,
 	        path: path,
@@ -1300,7 +1342,7 @@
 	          'Client-ID': state.clientid
 	        }
 	      };
-	      let http = __webpack_require__(8);
+	      let http = __webpack_require__(6);
 	      http.get(options, function (res) {
 	        let output = '';
 	        res.setEncoding('utf8');

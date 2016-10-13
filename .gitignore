@@ -1,7 +1,4 @@
-# modules
-/node_modules/*
-
-# oauth
-/examples/oauth.txt
-
+node_modules/
+examples/oauth.txt
 build.txt
+.npmignore
