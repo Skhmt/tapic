@@ -55,7 +55,7 @@
 	* Twitch API & Chat in javascript.
 	* @author Skhmt
 	* @license MIT
-	* @version 3.3.0
+	* @version 3.3.1
 	*
 	* @module TAPIC
 	*/
@@ -809,21 +809,27 @@
 	    switch (data.topic) {
 	      // https://dev.twitch.tv/docs/PubSub/bits/
 	      case 'channel-bitsevents.' + state.id:
-	        const username = data.message.user_name;
-	        const note = data.message.chat_message;
-	        const bits = data.message.bits_used;
-	        const totalBits = data.message.total_bits_used;
-	        _event('bits', {username, note, bits, totalBits});
+	        bits();
 	        break;
 	      // https://discuss.dev.twitch.tv/t/in-line-broadcaster-chat-mod-logs/7281/12
 	      case 'chat_moderator_actions.' + state.id + '.' + state.id:
-	        const action = data.message.moderation_action;
-	        const username = data.message.created_by;
-	        const args = data.message.args;
-	        _event('moderation', {username, action, args});
+	        moderation();
 	        break;
 	      default:
 	        break;
+	    }
+	    function bits() {
+	      const username = data.message.user_name;
+	      const note = data.message.chat_message;
+	      const bits = data.message.bits_used;
+	      const totalBits = data.message.total_bits_used;
+	      _event('bits', {username, note, bits, totalBits});
+	    }
+	    function moderation() {
+	      const action = data.message.moderation_action;
+	      const username = data.message.created_by;
+	      const args = data.message.args;
+	      _event('moderation', {username, action, args});
 	    }
 	  }
 	};
