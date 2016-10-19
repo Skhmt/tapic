@@ -1,4 +1,3 @@
 node_modules/
 examples/oauth.txt
-build.txt
 .npmignore

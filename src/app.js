@@ -1,12 +1,3 @@
-/**
-* Twitch API & Chat in javascript.
-* @author Skhmt
-* @license MIT
-* @version 3.3.0
-*
-* @module TAPIC
-*/
-
 // exporting if node, defining as a global function if browser
 if (require('./isNode')) module.exports = define_TAPIC();
 else window.TAPIC = define_TAPIC();
