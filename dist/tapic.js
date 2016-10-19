@@ -1534,6 +1534,23 @@
 	* @property {boolean} subs_only - True if the room is in subs (and mods) only mode, false if not.
 	*/
 
+	/**
+	* Bit tip notification. Via PubSub.
+	* @event bits
+	* @property {string} username - The user that tipped the bits.
+	* @property {string} note - Note that goes with the tip.
+	* @property {number} bits - Amount of bits donated for this tip.
+	* @property {number} totalBits - Total amount of bits donated.
+	*/
+
+	/**
+	* Moderation actions. Via PubSub.
+	* @event moderation
+	* @property {string} username - The mod that did something.
+	* @property {string} action - The moderation action.
+	* @property {number} args - Args.
+	*/
+
 
 /***/ }
 /******/ ]);
