@@ -3,7 +3,7 @@
 * Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.3.2
+* @version 3.3.3
 *
 * @module TAPIC
 */
@@ -12,6 +12,8 @@
   esversion: 6,
   node: true
 */
+
+var __nodeModule__ = module;
 
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -67,7 +69,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	// exporting if node, defining as a global function if browser
-	if (__webpack_require__(2)) module.exports = define_TAPIC();
+	if (__webpack_require__(2)) __nodeModule__.exports = define_TAPIC();
 	else window.TAPIC = define_TAPIC();
 
 	function define_TAPIC() {
@@ -790,8 +792,10 @@
 	  }
 
 	  function psMessage(event) {
-	    let message = JSON.parse(event.data);
-	    console.log(message);
+	    let message;
+	    if (__webpack_require__(2)) message = JSON.parse(event);
+	    else message = JSON.parse(event.data);
+
 	    switch (message.type) {
 	      case 'PONG':
 	        break;

@@ -39,8 +39,10 @@ module.exports = function (state, _event) {
   }
 
   function psMessage(event) {
-    let message = JSON.parse(event.data);
-    console.log(message);
+    let message;
+    if (require('./isNode')) message = JSON.parse(event);
+    else message = JSON.parse(event.data);
+
     switch (message.type) {
       case 'PONG':
         break;

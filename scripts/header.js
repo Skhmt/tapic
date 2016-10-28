@@ -16,6 +16,8 @@ let header = `
   node: true
 */
 
+var __nodeModule__ = module;
+
 `;
 
 let fs = require('fs');

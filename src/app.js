@@ -1,5 +1,5 @@
 // exporting if node, defining as a global function if browser
-if (require('./isNode')) module.exports = define_TAPIC();
+if (require('./isNode')) __nodeModule__.exports = define_TAPIC();
 else window.TAPIC = define_TAPIC();
 
 function define_TAPIC() {
