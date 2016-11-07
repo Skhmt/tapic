@@ -11,6 +11,7 @@
   "description": "A simple Twitch API and Chat library.",
   "devDependencies": {
     "jsdoc": "latest",
+    "docdash": "latest",
     "jshint": "latest",
     "webpack": "latest",
     "google-closure-compiler-js": "latest"
@@ -38,10 +39,10 @@
   "scripts": {
     "build:min": "webpack --min",
     "build:js": "webpack",
-    "docs": "jsdoc ./dist/tapic.js -t templates/docdash -d ./docs",
+    "docs": "jsdoc ./dist/tapic.js -t ./node_modules/docdash -d ./docs",
     "lint": "jshint ./dist/tapic.js",
     "build:header": "node ./scripts/header.js ./dist/tapic.js ./dist/tapic.min.js",
     "build": "npm run build:min && npm run build:js && npm run build:header && npm run docs && npm run lint"
   },
-  "version": "3.3.4"
+  "version": "3.3.5"
 }

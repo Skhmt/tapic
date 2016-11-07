@@ -20,7 +20,9 @@ Or install via NPM: `npm install tapic`.
 
 ### Building
 
-Run `npm run build` to build tapic.js from source. It has some dependencies.
+`npm install`
+
+`npm run build`
 
 ### Misc
 
