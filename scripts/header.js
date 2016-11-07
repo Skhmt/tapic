@@ -16,7 +16,8 @@ let header = `
   node: true
 */
 
-var __nodeModule__ = module;
+var __nodeModule__;
+if (typeof module == 'object') __nodeModule__ = module;
 
 `;
 
