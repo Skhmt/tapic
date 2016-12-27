@@ -1,5 +1,5 @@
 module.exports = function (state, _event) {
-  function _parseMessage(text) {
+  function _parseMessage (text) {
     _event('raw', text);
     let textarray = text.split(' ');
 
@@ -7,53 +7,63 @@ module.exports = function (state, _event) {
       // chat
       // :twitchstate.username!twitchstate.username@twitchstate.username.tmi.twitch.tv PRIVMSG #channel :message here
       _msgPriv(textarray);
-    } else if (textarray[1] === 'PRIVMSG') {
+    }
+    else if (textarray[1] === 'PRIVMSG') {
       // host
       _event('host', textarray[3].substring(1));
-    } else if (textarray[2] === 'NOTICE') {
+    }
+    else if (textarray[2] === 'NOTICE') {
       // notice
       // @msg-id=slow_off :tmi.twitch.tv NOTICE #channel :This room is no longer in slow mode.
       _msgNotice(textarray);
-    } else if (textarray[1] === 'JOIN') {
+    }
+    else if (textarray[1] === 'JOIN') {
       // join
       // :twitchstate.username!twitchstate.username@twitchstate.username.tmi.twitch.tv JOIN #channel
       _msgJoin(textarray);
-    } else if (textarray[1] === 'PART') {
+    }
+    else if (textarray[1] === 'PART') {
       // part
       // :twitchstate.username!twitchstate.username@twitchstate.username.tmi.twitch.tv PART #channel
       _msgPart(textarray);
-    } else if (textarray[2] === 'ROOMSTATE') {
+    }
+    else if (textarray[2] === 'ROOMSTATE') {
       // roomstate
       // @broadcaster-lang=;r9k=0;slow=0;subs-only=0 :tmi.twitch.tv ROOMSTATE #channel
       _msgRoomstate(textarray);
-    } else if (textarray[2] === 'WHISPER') {
+    }
+    else if (textarray[2] === 'WHISPER') {
       // whisper
       // @badges=;color=#FF69B4;display-name=littlecatbot;emotes=;message-id=21;thread-id=71619374_108640872;turbo=0;user-id=108640872;user-type= :littlecatbot!littlecatbot@littlecatbot.tmi.twitch.tv WHISPER skhmt :hello world
       _msgWhisper(textarray);
-    } else if (textarray[1] === 'CLEARCHAT') {
+    }
+    else if (textarray[2] === 'CLEARCHAT') {
       // clear chat
-      // :tmi.twitch.tv CLEARCHAT #channel
-      _event('clearChat');
-    } else if (textarray[2] === 'CLEARCHAT') {
+      // @room-id=71619374 :tmi.twitch.tv CLEARCHAT #skhmt
+
       // ban/timeout
       // @ban-duration=1;ban-reason=Follow\sthe\srules :tmi.twitch.tv CLEARCHAT #channel :targetstate.username
       // @ban-reason=Follow\sthe\srules :tmi.twitch.tv CLEARCHAT #channel :targetstate.username
-      _msgBan(textarray);
-    } else if (textarray[2] === 'USERSTATE') {
+      if (textarray.length === 3) _event('clearChat');
+      else _msgBan(textarray);  
+    }
+    else if (textarray[2] === 'USERSTATE') {
       // userstate
       // @color=#0D4200;display-name=UserNaME;emote-sets=0,33;mod=1;subscriber=1;turbo=1;user-type=staff :tmi.twitch.tv USERSTATE #channel
       _msgUserstate(textarray);
-    } else if (textarray[2] === 'USERNOTICE') {
+    }
+    else if (textarray[2] === 'USERNOTICE') {
       // sub notifications for now, may change in the future
       // @badges=staff/1,broadcaster/1,turbo/1;color=#008000;display-name=TWITCHstate.username;emotes=;mod=0;msg-id=resub;msg-param-months=6;room-id=1337;subscriber=1;system-msg=TWITCHstate.username\shas\ssubscribed\sfor\s6\smonths!;login=twitchstate.username;turbo=1;user-id=1337;user-type=staff :tmi.twitch.tv USERNOTICE #channel :Great stream -- keep it up!
       _msgSub(textarray);
-    } else {
+    }
+    else {
       // not recognized by anything else
-      // if ( text ) console.info( text );
+      // console.info('Uncaught message type:' + textarray);
     }
   }
 
-  function _parseTags(tagString) {
+  function _parseTags (tagString) {
     let output = new Map();
 
     // remove leading '@' then split by ';'
@@ -72,7 +82,7 @@ module.exports = function (state, _event) {
     return output;
   }
 
-  function _msgWhisper(textarray) {
+  function _msgWhisper (textarray) {
     let whisperTags = _parseTags(textarray[0]);
 
     // some people don't have a display-name, so getting it from somewhere else as a backup
@@ -100,7 +110,7 @@ module.exports = function (state, _event) {
     });
   }
 
-  function _msgPriv(textarray) {
+  function _msgPriv (textarray) {
     let msgTags = _parseTags(textarray[0]);
 
     if (!msgTags.get('display-name')) msgTags.set('display-name', textarray[1].split('!')[0].substring(1));
@@ -147,23 +157,23 @@ module.exports = function (state, _event) {
     }
   }
 
-  function _msgNotice(textarray) {
+  function _msgNotice (textarray) {
     textarray.splice(0, 4);
     const output = textarray.join(' ').substring(1);
     _event('notice', output);
   }
 
-  function _msgJoin(textarray) {
+  function _msgJoin (textarray) {
     const joinname = textarray[0].split('!')[0].substring(1);
     _event('join', joinname);
   }
 
-  function _msgPart(textarray) {
+  function _msgPart (textarray) {
     const partname = textarray[0].split('!')[0].substring(1);
     _event('part', partname);
   }
 
-  function _msgRoomstate(textarray) {
+  function _msgRoomstate (textarray) {
     const roomstateTags = _parseTags(textarray[0]);
     _event('roomstate', {
       lang: roomstateTags.get('broadcaster-lang'),
@@ -173,7 +183,7 @@ module.exports = function (state, _event) {
     });
   }
 
-  function _msgBan(textarray) {
+  function _msgBan (textarray) {
     let banTags = _parseTags(textarray[0]);
 
     let reason = banTags.get('ban-reason');
@@ -189,7 +199,7 @@ module.exports = function (state, _event) {
     });
   }
 
-  function _msgUserstate(textarray) {
+  function _msgUserstate (textarray) {
     const userstateTags = _parseTags(textarray[0]);
     state.userColor = userstateTags.get('color');
     state.userDisplayName = userstateTags.get('display-name');
@@ -200,7 +210,7 @@ module.exports = function (state, _event) {
     state.userType = userstateTags.get('user-type');
   }
 
-  function _msgSub(textarray) {
+  function _msgSub (textarray) {
     const usernoticeParams = _parseTags(textarray[0]);
 
     const joinedText = textarray.slice(4).join(' ').substring(1);

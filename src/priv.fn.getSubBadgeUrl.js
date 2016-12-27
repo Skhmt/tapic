@@ -1,5 +1,5 @@
 module.exports = function (state, _getJSON) {
-  function _getSubBadgeUrl(callback) {
+  function _getSubBadgeUrl (callback) {
     _getJSON(
       'https://api.twitch.tv/kraken/chat/' + state.channel + '/badges',
       function (res) {

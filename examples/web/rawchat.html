@@ -4,26 +4,30 @@
   </div>
   <script src="../../dist/tapic.js"></script>
   <script>
-    let clientid = '';
-    let oauth = '';
+    const clientid = '';
+    const oauth = '';
+    const channel = 'monstercat';
 
-    let channel = 'capcomfighters';
+    const $chat = document.getElementById('chat');
+    TAPIC.listen('raw', res => addChatScroll($chat, `<p>${res}</p>`));
 
-    TAPIC.listen('raw', function (res) {
-      let $chat = document.getElementById('chat');
-      const isScrolledToBottom = $chat.scrollHeight - $chat.clientHeight <= $chat.scrollTop + 5;
+    TAPIC.setup(clientid, oauth, username => TAPIC.joinChannel(channel));
+
+    function addChatScroll (el, text) {
+      // total height of content including hidden content minus the visible height of element
+      const hiddenContentHeight = el.scrollHeight - el.clientHeight;
+      // number of pixels away from actually being scrolled to the bottom that counts as being at the bottom
+      const pixelBuffer = 5;
+      const heightFromContentTop = el.scrollTop + pixelBuffer;
+      
+      const isScrolledToBottom = hiddenContentHeight <= heightFromContentTop;
 
       // add message
-      $chat.innerHTML += '<p>' + res + '</p>';
+      el.innerHTML += text;
 
       // if it was scrolled to the bottom before the message was appended, scroll to the bottom
-      if (isScrolledToBottom) $chat.scrollTop = Number.MAX_SAFE_INTEGER;
-    });
-
-    TAPIC.setup(clientid, oauth, function (username) {
-      TAPIC.joinChannel(channel, function () {
-      });
-    });
+      if (isScrolledToBottom) el.scrollTop = Number.MAX_VALUE;
+    }
 
   </script>
 </body>

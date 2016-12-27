@@ -246,4 +246,13 @@ module.exports = function (TAPIC, state) {
     if (!state.channel) return console.error('Not in a channel.');
     return state.userType;
   };
+
+  /**
+   * Gets the user's oauth token.
+   * @return {string} User's oauth token
+   * @function getOauth
+   */
+  TAPIC.getOauth = function () {
+    return state.oauth;
+  };
 };

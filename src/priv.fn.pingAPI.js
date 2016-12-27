@@ -2,7 +2,7 @@ module.exports = function (state, _event, _refreshRate) {
 
   let _getJSON = require('./priv.fn.getJSON')(state);
 
-  function _pingAPI(refresh, callback) {
+  function _pingAPI (refresh, callback) {
 
     if (!state.channel) return;
 
