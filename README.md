@@ -1,8 +1,6 @@
 # tapic.js
 A Twitch API and Chat library in javascript.
 
-*(Formerly known as TWAPI.js)*
-
 View the complete reference docs here: https://skhmt.github.io/tapic/
 
 ---
