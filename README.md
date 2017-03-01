@@ -26,6 +26,7 @@ Or install via NPM: `npm install tapic`.
 
 ### To Do
 
+* Fix Community block in pingAPI when Dallas fixes the Twitch API
 * Transition whispers from irc/ws to pub/sub
 * Finish Communities
 * Finish Channel Feed
