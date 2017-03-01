@@ -30,6 +30,7 @@ Or install via NPM: `npm install tapic`.
 * Transition whispers from irc/ws to pub/sub
 * Finish Communities
 * Finish Channel Feed
+* Update bits pub/sub
 
 ---
 
