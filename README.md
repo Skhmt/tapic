@@ -12,13 +12,13 @@ Download `tapic.js` and include in your webpage via: `<script src="tapic.js"></s
 See `examples/test.html` for examples on every part of tapic.js. Open up the console (F12 or ctrl-shift-i) to see the test outputs.
 You will need to put in a client id and oauth token in `test.html` for it to work.
 
-Or install via NPM: `npm install tapic`.
+Or install via NPM: `npm install tapic --only=production`.
 
 ---
 
 ### Building
 
-`npm install`
+`npm install` if you've already installed it in the previous section, or `npm install tapic` if you haven't
 
 `npm run build`
 
@@ -26,7 +26,7 @@ Or install via NPM: `npm install tapic`.
 
 ### To Do
 
-* Fix Community block in pingAPI when Dallas fixes the Twitch API
+* Fix Community updates in pingAPI when Dallas fixes the Twitch API
 * Transition whispers from irc/ws to pub/sub
 * Finish Communities
 * Finish Channel Feed
