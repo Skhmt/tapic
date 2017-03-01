@@ -55,30 +55,30 @@ module.exports = function (state, _event, _getJSON) {
       }
     );
 
-//     _getJSON(
-//       'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/community',
-//       function (res) {
-//         if (res) {
-//           state.community.name = res.name;
-//           state.community.description = res.rescription;
-//           state.community.descriptionHTML = res.description_html;
-//           state.community.rules = res.rules;
-//           state.community.rulesHTML = res.rules_html;
-//           state.community.summary = res.summary;
-//         }
-//         else {
-//           state.community.name = '';
-//           state.community.description = '';
-//           state.community.descriptionHTML = '';
-//           state.community.rules = '';
-//           state.community.rulesHTML = '';
-//           state.community.summary = '';
-//         }
+    _getJSON(
+      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/community',
+      function (res) {
+        if (res) {
+          state.community.name = res.name;
+          state.community.description = res.rescription;
+          state.community.descriptionHTML = res.description_html;
+          state.community.rules = res.rules;
+          state.community.rulesHTML = res.rules_html;
+          state.community.summary = res.summary;
+        }
+        else {
+          state.community.name = '';
+          state.community.description = '';
+          state.community.descriptionHTML = '';
+          state.community.rules = '';
+          state.community.rulesHTML = '';
+          state.community.summary = '';
+        }
 
         community = true;
-//         _pingFinished();
-//       }
-//     );
+        _pingFinished();
+      }
+    );
 
     _getJSON(
       'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/follows',
