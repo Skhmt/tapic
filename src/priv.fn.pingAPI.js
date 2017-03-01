@@ -75,7 +75,7 @@ module.exports = function (state, _event, _getJSON) {
 //           state.community.summary = '';
 //         }
 
-//         community = true;
+        community = true;
 //         _pingFinished();
 //       }
 //     );
