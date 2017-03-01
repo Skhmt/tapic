@@ -128,17 +128,17 @@
 		console.log( 'getLogo: ' + TAPIC.getLogo() );
 		console.log( 'getVideoBanner: ' + TAPIC.getVideoBanner() );
 		console.log( 'getProfileBanner: ' + TAPIC.getProfileBanner() );
-		var folUser = 'skhmt';
-		var folTarget = 'letsmakefriends';
+		var folUser = '71619374';
+		var folTarget = '44230476';
 		TAPIC.isFollowing(folUser, folTarget, function (res) {
-			if ( res.isFollowing ) console.log( folUser + ' has been following ' + folTarget + ' since: ' + res.dateFollowed );
-			else console.log( folUser + ' is not following ' + folTarget + '.' );
+			if ( res.isFollowing ) console.log( 'Following since: ' + res.dateFollowed );
+			else console.log( 'Not following.' );
 		});
 		// // Requires 'channel_check_subscription'
-		// var subUser = 'skhmt';
+		// var subUser = '71619374';
 		// TAPIC.isSubscribing( subUser, function( res ) {
-		// 	if ( res.isSubscribing ) console.log( subUser + ' has been subbed to ' + subChannel + ' since: ' + res.dateSubscribed );
-		// 	else console.log( subUser + ' is not subbed.' );
+		// 	if ( res.isSubscribing ) console.log( 'Subbed since: ' + res.dateSubscribed );
+		// 	else console.log( 'Not a sub.' );
 		// } );
 		console.log( 'isPartner: ' + TAPIC.isPartner() );
 		console.log( 'getSubBadgeUrl: ' + TAPIC.getSubBadgeUrl() );
@@ -149,7 +149,8 @@
 		console.log( 'getDelay: ' + TAPIC.getDelay() );
 		console.log( 'getChatters: ' + JSON.stringify( TAPIC.getChatters() ) );
 		// TAPIC.setStatusGame('Making a Twitch Javascript Framework #programming', 'Creative');
-
+		// TAPIC.joinCommunity('catsonly');
+		// TAPIC.leaveCommunity();
 		console.log( 'getDisplayName: ' + TAPIC.getDisplayName() );
 		console.log( 'getColor: ' + TAPIC.getColor() );
 		console.log( 'getEmoteSets: ' + TAPIC.getEmoteSets() );
@@ -157,6 +158,22 @@
 		console.log( 'getSub: ' + TAPIC.getSub() );
 		console.log( 'getTurbo: ' + TAPIC.getTurbo() );
 		console.log( 'getUserType: ' + TAPIC.getUserType() );
+		console.log( 'getPreview: ' + TAPIC.getPreview() );
+		console.log( 'getChannelID: ' + TAPIC.getChannelID() );
+		console.log( 'getUserID: ' + TAPIC.getUserID() );
+		console.log( 'getOauth: ' + TAPIC.getOauth() );
+		console.log( 'getClientID: ' + TAPIC.getClientID() );
+		console.log( 'getCommunityName: ' + TAPIC.getCommunityName() );
+		console.log( 'getCommunityDescription: ' + TAPIC.getCommunityDescription() );
+		console.log( 'getCommunityDescriptionHTML: ' + TAPIC.getCommunityDescriptionHTML() );
+		console.log( 'getCommunityRules: ' + TAPIC.getCommunityRules() );
+		console.log( 'getCommunityRulesHTML: ' + TAPIC.getCommunityRulesHTML() );
+		console.log( 'getCommunitySummary: ' + TAPIC.getCommunitySummary() );
+		console.log( 'getTeamName: ' + TAPIC.getTeamName() );
+		console.log( 'getTeamDisplayName: ' + TAPIC.getTeamDisplayName() );
+		TAPIC.findID('tokimonster', function (res) {
+			console.log( 'findID: ' +  res);
+		});
 	}
 	function writeChat(msg) {
 		document.getElementById('chat').innerHTML += msg + '<br>';

@@ -13,7 +13,7 @@ module.exports = function (TAPIC, state) {
     if (!state.partner) return console.error('Not a partner, cannot run a commercial.');
 
     const host = 'https://api.twitch.tv';
-    const path = '/kraken/channels/' + state.channel + '/commercial?oauth_token=' + state.oauth;
+    const path = '/kraken/channels/' + state.channel_id + '/commercial?oauth_token=' + state.oauth;
     const url = host + path;
 
     if (require('./isNode')) {
@@ -27,13 +27,13 @@ module.exports = function (TAPIC, state) {
         }
       };
       let http = require('https');
-      http.request(options).write('length=' + length).end();
+      http.request(options).write({'duration': length}).end();
     } else {
       let xhr = new XMLHttpRequest();
       xhr.open('POST', url, true);
       xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
       xhr.setRequestHeader('Client-ID', state.clientid);
-      xhr.send('length=' + length);
+      xhr.send({'duration': length});
     }
   };
 };

@@ -1,7 +1,7 @@
 module.exports = function (state) {
   function _getJSON (path, params, callback) {
     const oauthString = '?oauth_token=' + state.oauth;
-    const apiString = '&api_version=3';
+    const apiString = '&api_version=5';
     const clientString = '&client_id=' + state.clientid;
 
     let url = path + oauthString + apiString + clientString;

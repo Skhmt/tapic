@@ -3,7 +3,7 @@
 * Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 3.3.6
+* @version 4.0.0
 *
 * @module TAPIC
 */
@@ -82,7 +82,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  let _event = __webpack_require__(4)(TAPIC);
 	  let _getJSON = __webpack_require__(5)(state);
 	  let _parseMessage = __webpack_require__(7)(state, _event);
-	  let _pingAPI = __webpack_require__(8)(state, _event);
+	  let _pingAPI = __webpack_require__(8)(state, _event, _getJSON);
 	  let _getSubBadgeUrl = __webpack_require__(9)(state, _getJSON);
 
 	  /**
@@ -106,10 +106,8 @@ if (typeof module == 'object') __nodeModule__ = module;
 	        return;
 	      }
 	      state.username = res.token.user_name;
-	      _getJSON('https://api.twitch.tv/kraken/users/' + state.username, function (res) {
-	        state.id = res._id;
-	        _init(callback);
-	      });
+	      state.id = res.token.user_id;
+	      _init(callback);
 	    });
 	  };
 
@@ -127,7 +125,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    __webpack_require__(12)(state, _event);
 
 	    // TAPIC.joinChannel(channel, callback)
-	    __webpack_require__(13)(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate);
+	    __webpack_require__(13)(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate, _getJSON);
 
 	    // TAPIC.sendChat(message)
 	    __webpack_require__(14)(TAPIC, state, _ws, _event);
@@ -148,10 +146,19 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    __webpack_require__(19)(TAPIC, state);
 
 	    // TAPIC.setStatusGame(status, game)
-	    __webpack_require__(20)(TAPIC, state);
+	    __webpack_require__(20)(TAPIC, state, _getJSON);
+
+	    // TAPIC.joinCommunity(community)
+	    __webpack_require__(21)(TAPIC, state, _getJSON);
+
+	    // TAPIC.leaveCommunity()
+	    __webpack_require__(22)(TAPIC, state, _getJSON);
+
+	    // TAPIC.findID(username, callback)
+	    __webpack_require__(23)(TAPIC, _getJSON);
 	  } // init()
 
-	  __webpack_require__(21);
+	  __webpack_require__(24);
 
 	  return TAPIC;
 	}
@@ -184,6 +191,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  oauth: '',
 	  username: '',
 	  channel: '',
+	  channel_id : '',
 	  id: '',
 	  online: '',
 	  game: '',
@@ -195,6 +203,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  fps: '',
 	  videoHeight: '',
 	  delay: '',
+	  preview: '',
 	  subBadgeUrl: '',
 	  chatters: {},
 	  followers: {},
@@ -209,6 +218,16 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  userSub: '',
 	  userTurbo: '',
 	  userType: '',
+	  community: {
+	    name: '',
+	    description: '',
+	    descriptionHTML: '',
+	    rules: '',
+	    rulesHTML: '',
+	    summary: '',
+	  },
+	  teamDisplayName: '',
+	  teamName: '',
 	};
 
 
@@ -274,7 +293,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	module.exports = function (state) {
 	  function _getJSON (path, params, callback) {
 	    const oauthString = '?oauth_token=' + state.oauth;
-	    const apiString = '&api_version=3';
+	    const apiString = '&api_version=5';
 	    const clientString = '&client_id=' + state.clientid;
 
 	    let url = path + oauthString + apiString + clientString;
@@ -575,28 +594,28 @@ if (typeof module == 'object') __nodeModule__ = module;
 /* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function (state, _event, _refreshRate) {
-
-	  let _getJSON = __webpack_require__(5)(state);
+	module.exports = function (state, _event, _getJSON) {
 
 	  function _pingAPI (refresh, callback) {
 
-	    if (!state.channel) return;
+	    if (!state.channel_id) return;
 
 	    let streams = false;
 	    let channels = false;
 	    let follows = false;
 	    let chatters = false;
+	    let community = false;
+	    let teams = false;
 
 	    function _pingFinished() {
-	      if (streams && channels && follows && chatters) {
+	      if (streams && channels && follows && chatters && community && teams) {
 	        if (typeof callback === 'function') callback();
 	        _event('update');
 	      }
 	    }
 
 	    _getJSON(
-	      'https://api.twitch.tv/kraken/streams/' + state.channel,
+	      'https://api.twitch.tv/kraken/streams/' + state.channel_id,
 	      function (res) {
 	        if (res.stream) {
 	          state.online = true;
@@ -604,6 +623,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	          state.fps = res.stream.average_fps;
 	          state.videoHeight = res.stream.video_height;
 	          state.delay = res.stream.delay;
+	          state.preview = res.stream.preview.large;
 	        } else {
 	          state.online = false;
 	        }
@@ -614,7 +634,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    );
 
 	    _getJSON(
-	      'https://api.twitch.tv/kraken/channels/' + state.channel,
+	      'https://api.twitch.tv/kraken/channels/' + state.channel_id,
 	      function (res) {
 	        state.game = res.game;
 	        state.status = res.status;
@@ -632,7 +652,32 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    );
 
 	    _getJSON(
-	      'https://api.twitch.tv/kraken/channels/' + state.channel + '/follows',
+	      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/community',
+	      function (res) {
+	        if (res) {
+	          state.community.name = res.name;
+	          state.community.description = res.rescription;
+	          state.community.descriptionHTML = res.description_html;
+	          state.community.rules = res.rules;
+	          state.community.rulesHTML = res.rules_html;
+	          state.community.summary = res.summary;
+	        }
+	        else {
+	          state.community.name = '';
+	          state.community.description = '';
+	          state.community.descriptionHTML = '';
+	          state.community.rules = '';
+	          state.community.rulesHTML = '';
+	          state.community.summary = '';
+	        }
+
+	        community = true;
+	        _pingFinished();
+	      }
+	    );
+
+	    _getJSON(
+	      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/follows',
 	      '&limit=100',
 	      function (res) {
 	        // https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
@@ -656,6 +701,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      }
 	    );
 
+	    // This is an undocumented/supported API - it hasn't been updated to v5. It uses channel NAME
 	    _getJSON(
 	      'https://tmi.twitch.tv/group/user/' + state.channel + '/chatters',
 	      function (res) {
@@ -679,6 +725,22 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      }
 	    );
 
+	    _getJSON(
+	      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/teams',
+	      function (res) {
+	        if (typeof res.teams[0] !== 'undefined') {
+	          state.teamDisplayName = res.teams[0].display_name;
+	          state.teamName = res.teams[0].name;
+	        }
+	        else {
+	          state.teamDisplayName = '';
+	          state.teamName = '';
+	        }
+	        teams = true;
+	        _pingFinished();
+	      }
+	    );
+
 	    setTimeout(function () {
 	      if (!__webpack_require__(2)) {
 	        document.getElementById('tapicJsonpContainer').innerHTML = '';
@@ -698,7 +760,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	module.exports = function (state, _getJSON) {
 	  function _getSubBadgeUrl (callback) {
 	    _getJSON(
-	      'https://api.twitch.tv/kraken/chat/' + state.channel + '/badges',
+	      'https://api.twitch.tv/kraken/chat/' + state.channel_id + '/badges',
 	      function (res) {
 	        if (res.subscriber) {
 	          state.subBadgeUrl = res.subscriber.image;
@@ -860,7 +922,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 /* 13 */
 /***/ function(module, exports) {
 
-	module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate) {
+	module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate, _getJSON) {
 	  /**
 	  * Joins a new channel. If you were already in a channel, this exits you from that channel first, then joins the new one.
 	  * @param  {string} channel The channel name, with or without the #.
@@ -869,8 +931,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  */
 	  TAPIC.joinChannel = function (channel, callback) {
 	    if (typeof channel != 'string') {
-	      console.error('Invalid parameters. Usage: TAPIC.joinChannel(channel);');
-	      return;
+	      return console.error('Invalid parameters. Usage: TAPIC.joinChannel(channel);');
 	    }
 	    if (!_ws) {
 	      return console.error('Tapic not setup.');
@@ -878,37 +939,48 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	    if (state.channel) _ws.send('PART #' + state.channel);
 
-	    state.channel = channel.replace('#', '');
-	    state.online = false;
-	    state.game = '';
-	    state.status = '';
-	    state.followerCount = '';
-	    state.totalViewCount = '';
-	    state.partner = '';
-	    state.currentViewCount = '';
-	    state.fps = '';
-	    state.videoHeight = '';
-	    state.delay = '';
-	    state.subBadgeUrl = '';
-	    state.chatters = {};
-	    state.followers = [];
-	    state.createdAt = '';
-	    state.logo = '';
-	    state.videoBanner = '';
-	    state.profileBanner = '';
-	    state.userMod = '';
-	    state.userSub = '';
-	    state.userTurbo = '';
-	    state.userType = '';
+	    _getJSON(
+	      'https://api.twitch.tv/kraken/users',
+	      '&login=' + channel,
+	      setState
+	    );
 
-	    _ws.send('JOIN #' + state.channel);
+	    function setState(res) {
+	      state.channel_id = res.users[0]._id;
+	      state.channel = channel.replace('#', '');
+	      state.online = false;
+	      state.game = '';
+	      state.status = '';
+	      state.followerCount = '';
+	      state.totalViewCount = '';
+	      state.partner = '';
+	      state.currentViewCount = '';
+	      state.fps = '';
+	      state.videoHeight = '';
+	      state.delay = '';
+	      state.subBadgeUrl = '';
+	      state.chatters = {};
+	      state.followers = [];
+	      state.createdAt = '';
+	      state.logo = '';
+	      state.videoBanner = '';
+	      state.profileBanner = '';
+	      state.userMod = '';
+	      state.userSub = '';
+	      state.userTurbo = '';
+	      state.userType = '';
 
-	    _getSubBadgeUrl();
-	    if (typeof callback == 'function') {
-	      _pingAPI(_refreshRate, callback);
-	    } else {
-	      _pingAPI(_refreshRate);
+	      _ws.send('JOIN #' + state.channel);
+
+	      _getSubBadgeUrl();
+	      if (typeof callback == 'function') {
+	        _pingAPI(_refreshRate, callback);
+	      } else {
+	        _pingAPI(_refreshRate);
+	      }
 	    }
+
+
 	  };
 	};
 
@@ -972,15 +1044,15 @@ if (typeof module == 'object') __nodeModule__ = module;
 	module.exports = function (TAPIC, _getJSON) {
 	  /**
 	  * Checks if "user" is following "channel". This is an asynchronous function and requires a callback.
-	  * @param  {string} user     The user name to check.
-	  * @param  {string} channel  The channel to check.
+	  * @param  {string} user     The user id to check.
+	  * @param  {string} channel  The channel id to check.
 	  * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isFollowing (boolean) and dateFollowed (string).
 	  * @function isFollowing
 	  */
 	  TAPIC.isFollowing = function (user, channel, callback) {
 	    // https://api.twitch.tv/kraken/users/skhmt/follows/channels/food
 	    if (typeof user != 'string' || typeof channel != 'string' || typeof callback != 'function') {
-	      console.error('Invalid parameters. Usage: TAPIC.isFollowing(user, channel, callback);');
+	      console.error('Invalid parameters. Usage: TAPIC.isFollowing(user_id, channel_id, callback);');
 	      return;
 	    }
 	    const url = 'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel;
@@ -1007,17 +1079,17 @@ if (typeof module == 'object') __nodeModule__ = module;
 	module.exports = function (TAPIC, state, _getJSON) {
 	  /**
 	  * Checks if "user" is subscribed to the current channel. This is an asynchronous function and requires a callback. Requires the channel_check_subscription permission and the username and channel must be the same.
-	  * @param  {string} user     The user name to check.
+	  * @param  {string} user     The user id to check.
 	  * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isSubscribing (boolean) and dateSubscribed (string).
 	  * @function isSubscribing
 	  */
 	  TAPIC.isSubscribing = function (user, callback) {
 	    if (typeof user != 'string' || typeof callback != 'function') {
-	      console.error('Invalid parameters. Usage: TAPIC.isSubscribing(user, callback);');
+	      console.error('Invalid parameters. Usage: TAPIC.isSubscribing(user_id, callback);');
 	      return;
 	    }
 	    // https://api.twitch.tv/kraken/channels/teststate.channel/subscriptions/testuser
-	    const url = 'https://api.twitch.tv/kraken/channels/' + state.channel + '/subscriptions/' + user;
+	    const url = 'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/subscriptions/' + user;
 	    _getJSON(
 	      url,
 	      function (res) {
@@ -1059,6 +1131,24 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  */
 	  TAPIC.getChannel = function () {
 	    return state.channel;
+	  };
+
+	  /**
+	  * Gets the user's id.
+	  * @return {string} The user id.
+	  * @function getUserID
+	  */
+	  TAPIC.getUserID = function () {
+	    return state.id;
+	  };
+
+	  /**
+	  * Gets the channel id.
+	  * @return {string} The channel id.
+	  * @function getChannelID
+	  */
+	  TAPIC.getChannelID = function () {
+	    return state.channel_id;
 	  };
 
 	  /**
@@ -1292,12 +1382,102 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  };
 
 	  /**
-	   * Gets the user's oauth token.
-	   * @return {string} User's oauth token
-	   * @function getOauth
-	   */
+	  * Gets the user's oauth token.
+	  * @return {string} User's oauth token
+	  * @function getOauth
+	  */
 	  TAPIC.getOauth = function () {
 	    return state.oauth;
+	  };
+
+	  /**
+	  * Gets the client id.
+	  * @return {string} The client id
+	  * @function getClientID
+	  */
+	  TAPIC.getClientID = function () {
+	    return state.clientid;
+	  };
+
+	  /**
+	  * Gets the stream preview if live.
+	  * @return {string} 640x360 .jpg url
+	  * @function getPreview
+	  */
+	  TAPIC.getPreview = function () {
+	    return state.preview;
+	  };
+
+	  /**
+	  * Gets the community name.
+	  * @return {string} Name of the community
+	  * @function getCommunityName
+	  */
+	  TAPIC.getCommunityName = function () {
+	    return state.community.name;
+	  };
+
+	  /**
+	  * Gets the community description in markdown.
+	  * @return {string} Description of the community
+	  * @function getCommunityDescription
+	  */
+	  TAPIC.getCommunityDescription = function () {
+	    return state.community.description;
+	  };
+
+	  /**
+	  * Gets the community description in HTML.
+	  * @return {string} Description of the community
+	  * @function getCommunityDescriptionHTML
+	  */
+	  TAPIC.getCommunityDescriptionHTML = function () {
+	    return state.community.descriptionHTML;
+	  };
+
+	  /**
+	  * Gets the community rules in markdown.
+	  * @return {string} Rules of the community
+	  * @function getCommunityRules
+	  */
+	  TAPIC.getCommunityRules = function () {
+	    return state.community.rules;
+	  };
+
+	  /**
+	  * Gets the community rules in HTML.
+	  * @return {string} Rules of the community
+	  * @function getCommunityRulesHTML
+	  */
+	  TAPIC.getCommunityRulesHTML = function () {
+	    return state.community.rulesHTML;
+	  };
+
+	  /**
+	  * Gets the community summary in plaintext.
+	  * @return {string} Summary of the community
+	  * @function getCommunitySummary
+	  */
+	  TAPIC.getCommunitySummary = function () {
+	    return state.community.summary;
+	  };
+
+	  /**
+	  * Gets the channel's team name. This is mostly used to get more information via the twitchapi.
+	  * @return {string} Team name
+	  * @function getTeamName
+	  */
+	  TAPIC.getTeamName = function () {
+	    return state.teamName;
+	  };
+
+	  /**
+	  * Gets the channel's team (display) name. This is meant to be shown to user(s).
+	  * @return {string} Team (display) name
+	  * @function getTeamDisplayName
+	  */
+	  TAPIC.getTeamDisplayName = function () {
+	    return state.teamDisplayName;
 	  };
 	};
 
@@ -1321,7 +1501,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    if (!state.partner) return console.error('Not a partner, cannot run a commercial.');
 
 	    const host = 'https://api.twitch.tv';
-	    const path = '/kraken/channels/' + state.channel + '/commercial?oauth_token=' + state.oauth;
+	    const path = '/kraken/channels/' + state.channel_id + '/commercial?oauth_token=' + state.oauth;
 	    const url = host + path;
 
 	    if (__webpack_require__(2)) {
@@ -1335,13 +1515,13 @@ if (typeof module == 'object') __nodeModule__ = module;
 	        }
 	      };
 	      let http = __webpack_require__(6);
-	      http.request(options).write('length=' + length).end();
+	      http.request(options).write({'duration': length}).end();
 	    } else {
 	      let xhr = new XMLHttpRequest();
 	      xhr.open('POST', url, true);
 	      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
 	      xhr.setRequestHeader('Client-ID', state.clientid);
-	      xhr.send('length=' + length);
+	      xhr.send({'duration': length});
 	    }
 	  };
 	};
@@ -1349,7 +1529,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 /***/ },
 /* 20 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	module.exports = function (TAPIC, state) {
 	  /**
@@ -1364,65 +1544,155 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      return;
 	    }
 
-	    const host = 'https://api.twitch.tv';
-	    let path = '/kraken/channels/' + state.channel;
-	        path += '?channel[status]=' + encodeURIComponent(status);
-	        path += '&channel[game]=' + encodeURIComponent(game);
-	        path += '&_method=put&oauth_token=' + state.oauth;
+	    _getJSON('https://api.twitch.tv/kraken/channels/' + state.channel_id,
+	      '&_method=put&channel[status]=' + encodeURIComponent(status) + '&channel[game]=' + encodeURIComponent(game),
+	      function (res) {
+	        state.game = res.game;
+	        state.status = res.status;
+	      }
+	    );
 
-	    if (__webpack_require__(2)) {
-	      let options = {
-	        host: host,
-	        path: path,
-	        headers: {
-	          'Client-ID': state.clientid
-	        }
-	      };
-	      let http = __webpack_require__(6);
-	      http.get(options, function (res) {
-	        let output = '';
-	        res.setEncoding('utf8');
-	        res.on('data', function (chunk) {
-	          output += chunk;
-	        });
-	        res.on('end', function () {
-	          if (res.statusCode >= 200 && res.statusCode < 400) {
-	            const resp = JSON.parse(output);
-	            state.game = resp.game;
-	            state.status = resp.status;
-	          } else { // error
-	            console.error(output);
-	          }
-	        });
-	      }).on('error', function (e) {
-	        console.error(e.message);
-	      });
-	    } else { // vanilla JS
-	      let xhr = new XMLHttpRequest();
-	      xhr.open('GET', host + path, true);
-	      xhr.setRequestHeader('Client-ID', state.clientid);
-	      xhr.onload = function () {
-	        if (xhr.status >= 200 && xhr.status < 400) {
-	          const resp = JSON.parse(xhr.responseText);
-	          state.game = resp.game;
-	          state.status = resp.status;
-	        } else {
-	          // We reached our target server, but it returned an error
-	          console.error(xhr.responseText);
-	        }
-	      };
-	      xhr.onerror = function () {
-	        // There was a connection error of some sort
-	        console.error(xhr.responseText);
-	      };
-	      xhr.send();
-	    }
+	    // const host = 'https://api.twitch.tv';
+	    // let path = '/kraken/channels/' + state.channel_id;
+	    //     path += '?channel[status]=' + encodeURIComponent(status);
+	    //     path += '&channel[game]=' + encodeURIComponent(game);
+	    //     path += '&_method=put&oauth_token=' + state.oauth;
+
+	    // if (require('./isNode')) {
+	    //   let options = {
+	    //     host: host,
+	    //     path: path,
+	    //     headers: {
+	    //       'Client-ID': state.clientid
+	    //     }
+	    //   };
+	    //   let http = require('https');
+	    //   http.get(options, function (res) {
+	    //     let output = '';
+	    //     res.setEncoding('utf8');
+	    //     res.on('data', function (chunk) {
+	    //       output += chunk;
+	    //     });
+	    //     res.on('end', function () {
+	    //       if (res.statusCode >= 200 && res.statusCode < 400) {
+	    //         const resp = JSON.parse(output);
+	    //         state.game = resp.game;
+	    //         state.status = resp.status;
+	    //       } else { // error
+	    //         console.error(output);
+	    //       }
+	    //     });
+	    //   }).on('error', function (e) {
+	    //     console.error(e.message);
+	    //   });
+	    // } else { // vanilla JS
+	    //   let xhr = new XMLHttpRequest();
+	    //   xhr.open('GET', host + path, true);
+	    //   xhr.setRequestHeader('Client-ID', state.clientid);
+	    //   xhr.onload = function () {
+	    //     if (xhr.status >= 200 && xhr.status < 400) {
+	    //       const resp = JSON.parse(xhr.responseText);
+	    //       state.game = resp.game;
+	    //       state.status = resp.status;
+	    //     } else {
+	    //       // We reached our target server, but it returned an error
+	    //       console.error(xhr.responseText);
+	    //     }
+	    //   };
+	    //   xhr.onerror = function () {
+	    //     // There was a connection error of some sort
+	    //     console.error(xhr.responseText);
+	    //   };
+	    //   xhr.send();
+	    // }
 	  };
 	};
 
 
 /***/ },
 /* 21 */
+/***/ function(module, exports) {
+
+	module.exports = function (TAPIC, state, _getJSON) {
+	  /**
+	  * Joins the channel to a community
+	  * @param  {string} community The community NAME
+	  * @function joinCommunity
+	  */
+	  TAPIC.joinCommunity = function (community) {
+	    if (typeof community != 'string') {
+	      return console.error('Invalid parameter. Usage: TAPIC.joinCommunity(community);');
+	    }
+
+	    // Getting the id of the community by its name, then joining it
+	    _getJSON('https://api.twitch.tv/kraken/communities/',
+	      '&name=' + community,
+	      function (res) {
+	        joinCommunity(res._id);
+	      }
+	    );
+
+	    function joinCommunity(community_id) {
+	      _getJSON('https://api.twitch.tv/kraken/channels/' + state.channel_id + '/community/' + community_id,
+	        '&_method=put',
+	        function (res) {
+	          // do nothing - there's no response from twitch
+	        }
+	      );
+	    }
+	    
+	  };
+	};
+
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	module.exports = function (TAPIC, state, _getJSON) {
+	  /**
+	  * Removes the channel from its current community.
+	  * @function leaveCommunity
+	  */
+	  TAPIC.leaveCommunity = function () {
+	    _getJSON('https://api.twitch.tv/kraken/channels/' + state.channel_id + '/community/',
+	      '&_method=delete',
+	      function (res) {
+	        // do nothing - there's no response from twitch
+	      }
+	    );
+	  };
+	};
+
+
+/***/ },
+/* 23 */
+/***/ function(module, exports) {
+
+	module.exports = function (TAPIC, _getJSON) {
+	  /**
+	  * Takes in a username (or channel name, same thing) and returns the user's ID
+	  * @param  {string} username  The username to check.
+	  * @param  {string} callback  The user/channel id.
+	  * @function findID
+	  */
+	  TAPIC.findID = function (username, callback) {
+	    if (typeof username != 'string' || typeof callback != 'function') {
+	      return console.error('Invalid parameters. Usage: TAPIC.findID(username, callback);');
+	    }
+	    _getJSON(
+	      'https://api.twitch.tv/kraken/users',
+	      '&login=' + username,
+	      function (res) {
+	        callback(res.users[0]._id);
+	      }
+	    );
+	  };
+	};
+
+
+/***/ },
+/* 24 */
 /***/ function(module, exports) {
 
 	/**

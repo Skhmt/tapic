@@ -11,7 +11,7 @@ function define_TAPIC() {
   let _event = require('./tapic.fns.events')(TAPIC);
   let _getJSON = require('./priv.fn.getJSON')(state);
   let _parseMessage = require('./priv.fn.parseMessage')(state, _event);
-  let _pingAPI = require('./priv.fn.pingAPI')(state, _event);
+  let _pingAPI = require('./priv.fn.pingAPI')(state, _event, _getJSON);
   let _getSubBadgeUrl = require('./priv.fn.getSubBadgeUrl')(state, _getJSON);
 
   /**
@@ -35,10 +35,8 @@ function define_TAPIC() {
         return;
       }
       state.username = res.token.user_name;
-      _getJSON('https://api.twitch.tv/kraken/users/' + state.username, function (res) {
-        state.id = res._id;
-        _init(callback);
-      });
+      state.id = res.token.user_id;
+      _init(callback);
     });
   };
 
@@ -56,7 +54,7 @@ function define_TAPIC() {
     require('./priv.ps')(state, _event);
 
     // TAPIC.joinChannel(channel, callback)
-    require('./tapic.fn.joinChannel')(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate);
+    require('./tapic.fn.joinChannel')(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate, _getJSON);
 
     // TAPIC.sendChat(message)
     require('./tapic.fn.sendChat')(TAPIC, state, _ws, _event);
@@ -77,7 +75,16 @@ function define_TAPIC() {
     require('./tapic.fn.runCommercial')(TAPIC, state);
 
     // TAPIC.setStatusGame(status, game)
-    require('./tapic.fn.setStatusGame')(TAPIC, state);
+    require('./tapic.fn.setStatusGame')(TAPIC, state, _getJSON);
+
+    // TAPIC.joinCommunity(community)
+    require('./tapic.fn.joinCommunity')(TAPIC, state, _getJSON);
+
+    // TAPIC.leaveCommunity()
+    require('./tapic.fn.leaveCommunity')(TAPIC, state, _getJSON);
+
+    // TAPIC.findID(username, callback)
+    require('./tapic.fn.findID')(TAPIC, _getJSON);
   } // init()
 
   require('./doc.events');

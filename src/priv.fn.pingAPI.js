@@ -1,25 +1,25 @@
-module.exports = function (state, _event, _refreshRate) {
-
-  let _getJSON = require('./priv.fn.getJSON')(state);
+module.exports = function (state, _event, _getJSON) {
 
   function _pingAPI (refresh, callback) {
 
-    if (!state.channel) return;
+    if (!state.channel_id) return;
 
     let streams = false;
     let channels = false;
     let follows = false;
     let chatters = false;
+    let community = false;
+    let teams = false;
 
     function _pingFinished() {
-      if (streams && channels && follows && chatters) {
+      if (streams && channels && follows && chatters && community && teams) {
         if (typeof callback === 'function') callback();
         _event('update');
       }
     }
 
     _getJSON(
-      'https://api.twitch.tv/kraken/streams/' + state.channel,
+      'https://api.twitch.tv/kraken/streams/' + state.channel_id,
       function (res) {
         if (res.stream) {
           state.online = true;
@@ -27,6 +27,7 @@ module.exports = function (state, _event, _refreshRate) {
           state.fps = res.stream.average_fps;
           state.videoHeight = res.stream.video_height;
           state.delay = res.stream.delay;
+          state.preview = res.stream.preview.large;
         } else {
           state.online = false;
         }
@@ -37,7 +38,7 @@ module.exports = function (state, _event, _refreshRate) {
     );
 
     _getJSON(
-      'https://api.twitch.tv/kraken/channels/' + state.channel,
+      'https://api.twitch.tv/kraken/channels/' + state.channel_id,
       function (res) {
         state.game = res.game;
         state.status = res.status;
@@ -55,7 +56,32 @@ module.exports = function (state, _event, _refreshRate) {
     );
 
     _getJSON(
-      'https://api.twitch.tv/kraken/channels/' + state.channel + '/follows',
+      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/community',
+      function (res) {
+        if (res) {
+          state.community.name = res.name;
+          state.community.description = res.rescription;
+          state.community.descriptionHTML = res.description_html;
+          state.community.rules = res.rules;
+          state.community.rulesHTML = res.rules_html;
+          state.community.summary = res.summary;
+        }
+        else {
+          state.community.name = '';
+          state.community.description = '';
+          state.community.descriptionHTML = '';
+          state.community.rules = '';
+          state.community.rulesHTML = '';
+          state.community.summary = '';
+        }
+
+        community = true;
+        _pingFinished();
+      }
+    );
+
+    _getJSON(
+      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/follows',
       '&limit=100',
       function (res) {
         // https://github.com/justintv/Twitch-API/blob/master/v3_resources/follows.md#get-channelschannelfollows
@@ -79,6 +105,7 @@ module.exports = function (state, _event, _refreshRate) {
       }
     );
 
+    // This is an undocumented/supported API - it hasn't been updated to v5. It uses channel NAME
     _getJSON(
       'https://tmi.twitch.tv/group/user/' + state.channel + '/chatters',
       function (res) {
@@ -98,6 +125,22 @@ module.exports = function (state, _event, _refreshRate) {
         state.chatters.viewers = res.chatters.viewers.slice();
 
         chatters = true;
+        _pingFinished();
+      }
+    );
+
+    _getJSON(
+      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/teams',
+      function (res) {
+        if (typeof res.teams[0] !== 'undefined') {
+          state.teamDisplayName = res.teams[0].display_name;
+          state.teamName = res.teams[0].name;
+        }
+        else {
+          state.teamDisplayName = '';
+          state.teamName = '';
+        }
+        teams = true;
         _pingFinished();
       }
     );

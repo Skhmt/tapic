@@ -1,8 +1,6 @@
 # tapic.js
 A Twitch API and Chat library in javascript.
 
-*(Formerly known as TWAPI.js)*
-
 View the complete reference docs here: https://skhmt.github.io/tapic/
 
 ---
@@ -24,8 +22,18 @@ Or install via NPM: `npm install tapic`.
 
 `npm run build`
 
+---
+
+### To Do
+
+* Transition whispers from irc/ws to pub/sub
+* Finish Communities
+* Finish Channel Feed
+
+---
+
 ### Misc
 
-This was written entirely in Javascript and has no dependencies besides [ws](https://www.npmjs.com/package/ws) when used in node.
+This was written entirely in Javascript and has no runtime dependencies besides [ws](https://www.npmjs.com/package/ws) when used in node.
 
 MIT License.

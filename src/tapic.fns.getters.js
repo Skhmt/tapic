@@ -18,6 +18,24 @@ module.exports = function (TAPIC, state) {
   };
 
   /**
+  * Gets the user's id.
+  * @return {string} The user id.
+  * @function getUserID
+  */
+  TAPIC.getUserID = function () {
+    return state.id;
+  };
+
+  /**
+  * Gets the channel id.
+  * @return {string} The channel id.
+  * @function getChannelID
+  */
+  TAPIC.getChannelID = function () {
+    return state.channel_id;
+  };
+
+  /**
   * Gets the online status of the channel.
   * @return {boolean} True if the channel is streaming, false if not.
   * @function isOnline
@@ -248,11 +266,101 @@ module.exports = function (TAPIC, state) {
   };
 
   /**
-   * Gets the user's oauth token.
-   * @return {string} User's oauth token
-   * @function getOauth
-   */
+  * Gets the user's oauth token.
+  * @return {string} User's oauth token
+  * @function getOauth
+  */
   TAPIC.getOauth = function () {
     return state.oauth;
+  };
+
+  /**
+  * Gets the client id.
+  * @return {string} The client id
+  * @function getClientID
+  */
+  TAPIC.getClientID = function () {
+    return state.clientid;
+  };
+
+  /**
+  * Gets the stream preview if live.
+  * @return {string} 640x360 .jpg url
+  * @function getPreview
+  */
+  TAPIC.getPreview = function () {
+    return state.preview;
+  };
+
+  /**
+  * Gets the community name.
+  * @return {string} Name of the community
+  * @function getCommunityName
+  */
+  TAPIC.getCommunityName = function () {
+    return state.community.name;
+  };
+
+  /**
+  * Gets the community description in markdown.
+  * @return {string} Description of the community
+  * @function getCommunityDescription
+  */
+  TAPIC.getCommunityDescription = function () {
+    return state.community.description;
+  };
+
+  /**
+  * Gets the community description in HTML.
+  * @return {string} Description of the community
+  * @function getCommunityDescriptionHTML
+  */
+  TAPIC.getCommunityDescriptionHTML = function () {
+    return state.community.descriptionHTML;
+  };
+
+  /**
+  * Gets the community rules in markdown.
+  * @return {string} Rules of the community
+  * @function getCommunityRules
+  */
+  TAPIC.getCommunityRules = function () {
+    return state.community.rules;
+  };
+
+  /**
+  * Gets the community rules in HTML.
+  * @return {string} Rules of the community
+  * @function getCommunityRulesHTML
+  */
+  TAPIC.getCommunityRulesHTML = function () {
+    return state.community.rulesHTML;
+  };
+
+  /**
+  * Gets the community summary in plaintext.
+  * @return {string} Summary of the community
+  * @function getCommunitySummary
+  */
+  TAPIC.getCommunitySummary = function () {
+    return state.community.summary;
+  };
+
+  /**
+  * Gets the channel's team name. This is mostly used to get more information via the twitchapi.
+  * @return {string} Team name
+  * @function getTeamName
+  */
+  TAPIC.getTeamName = function () {
+    return state.teamName;
+  };
+
+  /**
+  * Gets the channel's team (display) name. This is meant to be shown to user(s).
+  * @return {string} Team (display) name
+  * @function getTeamDisplayName
+  */
+  TAPIC.getTeamDisplayName = function () {
+    return state.teamDisplayName;
   };
 };
