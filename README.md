@@ -9,8 +9,8 @@ View the complete reference docs here: https://skhmt.github.io/tapic/
 
 Download `tapic.js` and include in your webpage via: `<script src="tapic.js"></script>`.
 
-See `examples/test.html` for examples on every part of tapic.js. Open up the console (F12 or ctrl-shift-i) to see the test outputs.
-You will need to put in a client id and oauth token in `test.html` for it to work.
+See `examples/web/index.html` for examples on every part of tapic.js. Open up the console (F12 or ctrl-shift-i) to see the test outputs.
+You will need to put in a client id and oauth token in `index.html` for it to work.
 
 Or install via NPM: `npm install tapic --only=production`.
 
