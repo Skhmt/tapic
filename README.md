@@ -31,6 +31,8 @@ Or install via NPM: `npm install tapic --only=production`.
 * Finish Communities
 * Finish Channel Feed
 * Update bits pub/sub
+* Option for message length limit check
+* Option for messages / 30 seconds limit check
 
 ---
 

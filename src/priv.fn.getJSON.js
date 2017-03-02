@@ -1,10 +1,16 @@
 module.exports = function (state) {
   function _getJSON (path, params, callback) {
+
+    let timeout = setTimeout(function() {
+      return callback('');
+    }, 4000);
+
     const oauthString = '?oauth_token=' + state.oauth;
     const apiString = '&api_version=5';
-    const clientString = '&client_id=' + state.clientid;
 
-    let url = path + oauthString + apiString + clientString;
+    // let url = path + oauthString + apiString + clientString;
+    let url = path + oauthString + apiString;
+    if (state.clientid) url += '&client_id=' + state.clientid;
     if (typeof params === 'string') {
       url += params;
     } else if (typeof params === 'function') {
@@ -15,20 +21,36 @@ module.exports = function (state) {
     if (require('./isNode')) { // No jsonp required, so using http.get
       let http = require('https');
       http.get(url, function (res) {
+        // res.setTimeout(timeoutMS, function() {
+        //   res.emit('close');
+        // });
+
         let output = '';
         res.setEncoding('utf8');
         res.on('data', function (chunk) {
           output += chunk;
         });
         res.on('end', function () {
-          if (res.statusCode >= 200 && res.statusCode < 400) {
-            callback(JSON.parse(output));
+          if (res.statusCode === 204) {
+            clearTimeout(timeout);
+            return callback(output);
+          }
+          else if (res.statusCode >= 200 && res.statusCode < 400) {
+            try {
+              clearTimeout(timeout);
+              return callback(JSON.parse(output));
+            } catch (err) {
+              clearTimeout(timeout);
+              return console.error(err + '@' + path);
+            }
           } else { // error
-            console.error(output);
+            clearTimeout(timeout);
+            return console.error(output + '@' + path);
           }
         });
       }).on('error', function (e) {
-          console.error(e.message);
+        clearTimeout(timeout);
+        return console.error(e.message + '@' + path);
       });
     } else {
       // Keep trying to make a random callback name until it finds a unique one.
@@ -38,12 +60,15 @@ module.exports = function (state) {
       } while (window[randomCallback]);
 
       window[randomCallback] = function (json) {
-        callback(json);
+        clearTimeout(timeout);
         delete window[randomCallback]; // Cleanup the window object
+        return callback(json);
       };
 
       let node = document.createElement('script');
+      node.id = randomCallback;
       node.src = url + '&callback=' + randomCallback;
+
       try {
         document.getElementById('tapicJsonpContainer').appendChild(node);
       } catch(e) {
@@ -51,10 +76,10 @@ module.exports = function (state) {
         tapicContainer.id = 'tapicJsonpContainer';
         tapicContainer.style.cssText = 'display:none;';
         document.getElementsByTagName('body')[0].appendChild(tapicContainer);
-        document.getElementById('tapicJsonpContainer').appendChild(node);
+        tapicContainer.appendChild(node);
       }
-
     }
-  }
+
+  } // close _getJSON
   return _getJSON;
 };

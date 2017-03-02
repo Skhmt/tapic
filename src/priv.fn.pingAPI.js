@@ -1,7 +1,6 @@
 module.exports = function (state, _event, _getJSON) {
 
-  function _pingAPI (refresh, callback) {
-
+  function _pingAPI (callback) {
     if (!state.channel_id) return;
 
     let streams = false;
@@ -109,12 +108,12 @@ module.exports = function (state, _event, _getJSON) {
     _getJSON(
       'https://tmi.twitch.tv/group/user/' + state.channel + '/chatters',
       function (res) {
-        if (!require('./isNode')) { // using _getJSON with this API endpoint adds "data" to the object
+        if (!require('./isNode')) { // using JSONP with this API endpoint adds "data" to the object
           res = res.data;
         }
 
-        if (!res.chatters) {
-          return console.log('No response for user list.');
+        if (!res || !res.chatters) {
+          return console.error('No response from "tmi.twitch.tv/group/user/:channel/chatters". This will happen from time to time.');
         }
         state.currentViewCount = res.chatter_count;
         // .slice(); is to set by value rather than reference
@@ -149,8 +148,8 @@ module.exports = function (state, _event, _getJSON) {
       if (!require('./isNode')) {
         document.getElementById('tapicJsonpContainer').innerHTML = '';
       }
-      _pingAPI(refresh);
-    }, refresh * 1000);
+      _pingAPI();
+    }, state.refreshRate * 1000);
   }
 
   return _pingAPI;

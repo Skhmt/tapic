@@ -1,9 +1,8 @@
 let TAPIC = require('../../dist/tapic.js');
 
-let clientid = '';
 let oauth = '';
 
-TAPIC.setup(clientid, oauth, function (username) {
+TAPIC.setup(oauth, function (username) {
   // This is also required for a lot of things to work
   let channel = username;
   TAPIC.joinChannel(channel, function () {
@@ -13,10 +12,10 @@ TAPIC.setup(clientid, oauth, function (username) {
 
 TAPIC.listen('raw', event => console.log(event));
 
-TAPIC.listen('echoChat', event => console.log('> ' + event))
+TAPIC.listen('echoChat', event => console.log('> ' + event));
 
 function tests() {
-  // TODO make some tests
+  // run some tests, see ../web/index.html for examples
 }
 
 // Console stuff

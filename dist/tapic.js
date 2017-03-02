@@ -78,7 +78,6 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  let TAPIC = {}; // this is the return object
 	  let state = __webpack_require__(3);
 	  let _ws;
-	  let _refreshRate = 5; // check the Twitch API every [this many] seconds
 	  let _event = __webpack_require__(4)(TAPIC);
 	  let _getJSON = __webpack_require__(5)(state);
 	  let _parseMessage = __webpack_require__(7)(state, _event);
@@ -86,18 +85,17 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  let _getSubBadgeUrl = __webpack_require__(9)(state, _getJSON);
 
 	  /**
-	  * Sets the clientid and oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
-	  * @param  {string} clientid Your public clientid.
+	  * Sets the oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
 	  * @param  {string} oauth Your user's oauth token. See: https://github.com/justintv/Twitch-API/blob/master/authentication.md for instructions on how to do that.
 	  * @param  {function} callback Calls back the username when TAPIC has successfully connected to Twitch.
 	  * @function setup
 	  */
-	  TAPIC.setup = function (clientid, oauth, callback) {
-	    if (typeof clientid != 'string' || typeof oauth != 'string') {
-	      console.error('Invalid parameters. Usage: TAPIC.setup(clientid, oauth[, callback]);');
+	  TAPIC.setup = function (oauth, callback) {
+	    if (typeof oauth !== 'string' || oauth.length === 0) {
+	      console.error('Invalid parameters. Usage: TAPIC.setup(oauth[, callback]);');
 	      return;
 	    }
-	    state.clientid = clientid;
+	    
 	    state.oauth = oauth.replace('oauth:', '');
 
 	    _getJSON('https://api.twitch.tv/kraken', function (res) {
@@ -107,6 +105,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      }
 	      state.username = res.token.user_name;
 	      state.id = res.token.user_id;
+	      state.clientid = res.token.client_id;
 	      _init(callback);
 	    });
 	  };
@@ -125,7 +124,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    __webpack_require__(12)(state, _event);
 
 	    // TAPIC.joinChannel(channel, callback)
-	    __webpack_require__(13)(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate, _getJSON);
+	    __webpack_require__(13)(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _getJSON);
 
 	    // TAPIC.sendChat(message)
 	    __webpack_require__(14)(TAPIC, state, _ws, _event);
@@ -156,9 +155,15 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	    // TAPIC.findID(username, callback)
 	    __webpack_require__(23)(TAPIC, _getJSON);
+
+	    // TAPIC.setRefreshRate(rateInSeconds)
+	    __webpack_require__(24)(TAPIC, state);
+
+	    // TAPIC.kraken(path, [params ,] callback)
+	    __webpack_require__(25)(TAPIC, _getJSON);
 	  } // init()
 
-	  __webpack_require__(24);
+	  __webpack_require__(26);
 
 	  return TAPIC;
 	}
@@ -187,6 +192,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 /***/ function(module, exports) {
 
 	module.exports = {
+	  refreshRate: 5,
 	  clientid: '',
 	  oauth: '',
 	  username: '',
@@ -292,11 +298,17 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	module.exports = function (state) {
 	  function _getJSON (path, params, callback) {
+
+	    let timeout = setTimeout(function() {
+	      return callback('');
+	    }, 4000);
+
 	    const oauthString = '?oauth_token=' + state.oauth;
 	    const apiString = '&api_version=5';
-	    const clientString = '&client_id=' + state.clientid;
 
-	    let url = path + oauthString + apiString + clientString;
+	    // let url = path + oauthString + apiString + clientString;
+	    let url = path + oauthString + apiString;
+	    if (state.clientid) url += '&client_id=' + state.clientid;
 	    if (typeof params === 'string') {
 	      url += params;
 	    } else if (typeof params === 'function') {
@@ -307,20 +319,36 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    if (__webpack_require__(2)) { // No jsonp required, so using http.get
 	      let http = __webpack_require__(6);
 	      http.get(url, function (res) {
+	        // res.setTimeout(timeoutMS, function() {
+	        //   res.emit('close');
+	        // });
+
 	        let output = '';
 	        res.setEncoding('utf8');
 	        res.on('data', function (chunk) {
 	          output += chunk;
 	        });
 	        res.on('end', function () {
-	          if (res.statusCode >= 200 && res.statusCode < 400) {
-	            callback(JSON.parse(output));
+	          if (res.statusCode === 204) {
+	            clearTimeout(timeout);
+	            return callback(output);
+	          }
+	          else if (res.statusCode >= 200 && res.statusCode < 400) {
+	            try {
+	              clearTimeout(timeout);
+	              return callback(JSON.parse(output));
+	            } catch (err) {
+	              clearTimeout(timeout);
+	              return console.error(err + '@' + path);
+	            }
 	          } else { // error
-	            console.error(output);
+	            clearTimeout(timeout);
+	            return console.error(output + '@' + path);
 	          }
 	        });
 	      }).on('error', function (e) {
-	          console.error(e.message);
+	        clearTimeout(timeout);
+	        return console.error(e.message + '@' + path);
 	      });
 	    } else {
 	      // Keep trying to make a random callback name until it finds a unique one.
@@ -330,12 +358,15 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      } while (window[randomCallback]);
 
 	      window[randomCallback] = function (json) {
-	        callback(json);
+	        clearTimeout(timeout);
 	        delete window[randomCallback]; // Cleanup the window object
+	        return callback(json);
 	      };
 
 	      let node = document.createElement('script');
+	      node.id = randomCallback;
 	      node.src = url + '&callback=' + randomCallback;
+
 	      try {
 	        document.getElementById('tapicJsonpContainer').appendChild(node);
 	      } catch(e) {
@@ -343,11 +374,11 @@ if (typeof module == 'object') __nodeModule__ = module;
 	        tapicContainer.id = 'tapicJsonpContainer';
 	        tapicContainer.style.cssText = 'display:none;';
 	        document.getElementsByTagName('body')[0].appendChild(tapicContainer);
-	        document.getElementById('tapicJsonpContainer').appendChild(node);
+	        tapicContainer.appendChild(node);
 	      }
-
 	    }
-	  }
+
+	  } // close _getJSON
 	  return _getJSON;
 	};
 
@@ -596,8 +627,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	module.exports = function (state, _event, _getJSON) {
 
-	  function _pingAPI (refresh, callback) {
-
+	  function _pingAPI (callback) {
 	    if (!state.channel_id) return;
 
 	    let streams = false;
@@ -705,12 +735,12 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    _getJSON(
 	      'https://tmi.twitch.tv/group/user/' + state.channel + '/chatters',
 	      function (res) {
-	        if (!__webpack_require__(2)) { // using _getJSON with this API endpoint adds "data" to the object
+	        if (!__webpack_require__(2)) { // using JSONP with this API endpoint adds "data" to the object
 	          res = res.data;
 	        }
 
-	        if (!res.chatters) {
-	          return console.log('No response for user list.');
+	        if (!res || !res.chatters) {
+	          return console.error('No response from "tmi.twitch.tv/group/user/:channel/chatters". This will happen from time to time.');
 	        }
 	        state.currentViewCount = res.chatter_count;
 	        // .slice(); is to set by value rather than reference
@@ -745,8 +775,8 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      if (!__webpack_require__(2)) {
 	        document.getElementById('tapicJsonpContainer').innerHTML = '';
 	      }
-	      _pingAPI(refresh);
-	    }, refresh * 1000);
+	      _pingAPI();
+	    }, state.refreshRate * 1000);
 	  }
 
 	  return _pingAPI;
@@ -922,7 +952,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 /* 13 */
 /***/ function(module, exports) {
 
-	module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate, _getJSON) {
+	module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _getJSON) {
 	  /**
 	  * Joins a new channel. If you were already in a channel, this exits you from that channel first, then joins the new one.
 	  * @param  {string} channel The channel name, with or without the #.
@@ -974,9 +1004,9 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	      _getSubBadgeUrl();
 	      if (typeof callback == 'function') {
-	        _pingAPI(_refreshRate, callback);
+	        _pingAPI(callback);
 	      } else {
-	        _pingAPI(_refreshRate);
+	        _pingAPI();
 	      }
 	    }
 
@@ -1052,8 +1082,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  TAPIC.isFollowing = function (user, channel, callback) {
 	    // https://api.twitch.tv/kraken/users/skhmt/follows/channels/food
 	    if (typeof user != 'string' || typeof channel != 'string' || typeof callback != 'function') {
-	      console.error('Invalid parameters. Usage: TAPIC.isFollowing(user_id, channel_id, callback);');
-	      return;
+	      return console.error('Invalid parameters. Usage: TAPIC.isFollowing(user_id, channel_id, callback);');
 	    }
 	    const url = 'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel;
 	    _getJSON(
@@ -1693,6 +1722,56 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 /***/ },
 /* 24 */
+/***/ function(module, exports) {
+
+	module.exports = function (TAPIC, state) {
+	  /**
+	  * Sets the rate at which tapic pings the Twitch API, by default it's 5
+	  * @param  {number} refreshRate in seconds
+	  * @function setRefreshRate
+	  */
+	  TAPIC.setRefreshRate = function (rate) {
+	    if (typeof rate != 'number') {
+	      return console.error('Invalid parameter. Usage: TAPIC.setRefreshRate(refreshRate);');
+	    }
+
+	    // Not allowing a faster refresh rate than 5 seconds
+	    if (rate >= 5.0) state.refreshRate = rate;
+	  };
+	};
+
+
+/***/ },
+/* 25 */
+/***/ function(module, exports) {
+
+	module.exports = function (TAPIC, _getJSON) {
+	  /**
+	  * Uses tapic.js to do calls to the twitchapi that aren't supported by default at https://api.twitch.tv/kraken/...
+	  * Example: TAPIC.kraken('games/top/', '&limit=100&offset=0', function (response) {...});
+	  * @param  {string} path     The url to after "/kraken/"
+	  * @param  {string} params  Optional. Query parameters in the format of "&___=___&___=___ ...".
+	  * @param  {function} callback Callback function is given the response object, see https://dev.twitch.tv/docs for specific info
+	  * @function kraken
+	  */
+	  TAPIC.kraken = function (path, arg2, arg3) {
+	    const URL = 'https://api.twitch.tv/kraken/';
+
+	    if (typeof path === 'string' && typeof arg2 === 'string' && typeof arg3 === 'function') {
+	      _getJSON(URL + path, arg2, function (res) { arg3(res); });
+	    }
+	    else if (typeof path === 'string' && typeof arg2 === 'function') {
+	      _getJSON(URL + path, function (res) { arg2(res); });
+	    }
+	    else {
+	      return console.error('Invalid parameters. Usage: TAPIC.kraken(path, [params,] callback);');
+	    }
+	  };
+	};
+
+
+/***/ },
+/* 26 */
 /***/ function(module, exports) {
 
 	/**

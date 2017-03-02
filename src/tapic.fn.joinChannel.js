@@ -1,4 +1,4 @@
-module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate, _getJSON) {
+module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _getJSON) {
   /**
   * Joins a new channel. If you were already in a channel, this exits you from that channel first, then joins the new one.
   * @param  {string} channel The channel name, with or without the #.
@@ -50,9 +50,9 @@ module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refres
 
       _getSubBadgeUrl();
       if (typeof callback == 'function') {
-        _pingAPI(_refreshRate, callback);
+        _pingAPI(callback);
       } else {
-        _pingAPI(_refreshRate);
+        _pingAPI();
       }
     }
 

@@ -1,4 +1,5 @@
 module.exports = {
+  refreshRate: 5,
   clientid: '',
   oauth: '',
   username: '',

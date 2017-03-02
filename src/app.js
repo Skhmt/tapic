@@ -7,7 +7,6 @@ function define_TAPIC() {
   let TAPIC = {}; // this is the return object
   let state = require('./priv.obj.state');
   let _ws;
-  let _refreshRate = 5; // check the Twitch API every [this many] seconds
   let _event = require('./tapic.fns.events')(TAPIC);
   let _getJSON = require('./priv.fn.getJSON')(state);
   let _parseMessage = require('./priv.fn.parseMessage')(state, _event);
@@ -15,18 +14,17 @@ function define_TAPIC() {
   let _getSubBadgeUrl = require('./priv.fn.getSubBadgeUrl')(state, _getJSON);
 
   /**
-  * Sets the clientid and oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
-  * @param  {string} clientid Your public clientid.
+  * Sets the oauth, then opens a chat connection and starts polling the Twitch API for data. This needs to be done before joining a channel.
   * @param  {string} oauth Your user's oauth token. See: https://github.com/justintv/Twitch-API/blob/master/authentication.md for instructions on how to do that.
   * @param  {function} callback Calls back the username when TAPIC has successfully connected to Twitch.
   * @function setup
   */
-  TAPIC.setup = function (clientid, oauth, callback) {
-    if (typeof clientid != 'string' || typeof oauth != 'string') {
-      console.error('Invalid parameters. Usage: TAPIC.setup(clientid, oauth[, callback]);');
+  TAPIC.setup = function (oauth, callback) {
+    if (typeof oauth !== 'string' || oauth.length === 0) {
+      console.error('Invalid parameters. Usage: TAPIC.setup(oauth[, callback]);');
       return;
     }
-    state.clientid = clientid;
+    
     state.oauth = oauth.replace('oauth:', '');
 
     _getJSON('https://api.twitch.tv/kraken', function (res) {
@@ -36,6 +34,7 @@ function define_TAPIC() {
       }
       state.username = res.token.user_name;
       state.id = res.token.user_id;
+      state.clientid = res.token.client_id;
       _init(callback);
     });
   };
@@ -54,7 +53,7 @@ function define_TAPIC() {
     require('./priv.ps')(state, _event);
 
     // TAPIC.joinChannel(channel, callback)
-    require('./tapic.fn.joinChannel')(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _refreshRate, _getJSON);
+    require('./tapic.fn.joinChannel')(TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _getJSON);
 
     // TAPIC.sendChat(message)
     require('./tapic.fn.sendChat')(TAPIC, state, _ws, _event);
@@ -85,6 +84,12 @@ function define_TAPIC() {
 
     // TAPIC.findID(username, callback)
     require('./tapic.fn.findID')(TAPIC, _getJSON);
+
+    // TAPIC.setRefreshRate(rateInSeconds)
+    require('./tapic.fn.setRefreshRate')(TAPIC, state);
+
+    // TAPIC.kraken(path, [params ,] callback)
+    require('./tapic.fn.kraken')(TAPIC, _getJSON);
   } // init()
 
   require('./doc.events');

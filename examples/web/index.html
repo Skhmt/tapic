@@ -9,24 +9,29 @@
 
 <script src="../../dist/tapic.js"></script>
 <script>
-	var clientid = ''; // public client id
-	var oauth = ''; // oauth, requires chat_login, channel_editor
-	// channel_commercial (if you want to run commercials), channel_check_subscription (if you want to check subscriber status)
-	// Do this first
-	TAPIC.setup(clientid, oauth, function (username) {
-		// This is also required for a lot of things to work
-		var channel = username;
-		TAPIC.joinChannel(channel, function () {
-      tests();
-    });
+	// required scopes: chat_login, channel_editor
+	// optional scopes: channel_commercial (run commercials), channel_check_subscription
+	var oauth = '';
 
+	// You have to run .setup() before anything besides .listen()
+	TAPIC.setup(oauth, function (username) {
+
+		// By default, TAPIC refreshes API information every 5 seconds, which is the minimum.
+		// Setting the refresh rate is optional.
+		TAPIC.setRefreshRate(10); 
+
+		// This is also required for a lot of things to work
+		TAPIC.joinChannel(username, function () {
+      		tests();
+    	});
 	});
+
 	// EventListeners
 	TAPIC.listen('raw', function (e) {
 		// You really don't NEED to see raw messages. But you can if you want.
 		// You can also manually parse the raw messages if you don't trust TAPIC.js
 		// writeChat( '* ' + e );
-    console.info(e);
+    	console.info(e);
 	});
 	TAPIC.listen('notice', function (e) {
 		writeChat( e );
@@ -39,9 +44,8 @@
 	});
 	TAPIC.listen('clearUser', function (e) {
 		writeChat( e.name + ' has been timed out for '
-    + e.duration + 's. Reason: ' + e.reason  );
+    	+ e.duration + 's. Reason: ' + e.reason  );
 	});
-
 	TAPIC.listen('clearChat', function (e) {
 		writeChat( 'Chat has been cleared.' );
 	});
@@ -78,7 +82,7 @@
 			(e.streamer ? '<img src="http://chat-badges.s3.amazonaws.com/broadcaster.png">' : '') +
 			'<strong style="color: ' + e.color + ';">' +
 			e.from +
-			'</strong>&nbsp;' +
+			'</strong>' +
 			(e.action ? '<span style="color: ' + e.color + ';">' : ':&nbsp;&nbsp;') +
 			e.text +
 			(e.action ? '</span>' : '' );
@@ -109,9 +113,10 @@
 			'</strong> &gt; <strong> ' + e.to + '</strong> : ' + e.text;
 		writeChat( output );
 	});
-  TAPIC.listen('update', function () {
-    console.info('TAPIC has updated its info from Twitch.');
-  });
+	TAPIC.listen('update', function () {
+		console.info('TAPIC has updated its info from Twitch.');
+	});
+
 	// Utility functions
 	function tests() {
 		// TAPIC.sendChat( 'Hello world!' );
@@ -174,7 +179,10 @@
 		TAPIC.findID('tokimonster', function (res) {
 			console.log( 'findID: ' +  res);
 		});
+		// TAPIC.kraken('games/top/', '&limit=100&offset=0', function (response) {...});
 	}
+
+	// This is for the webpage's chat, it doesn't have anything directly to do with TAPIC.js
 	function writeChat(msg) {
 		document.getElementById('chat').innerHTML += msg + '<br>';
 		document.getElementById('chat').scrollTop = Number.MAX_SAFE_INTEGER;
