@@ -4,14 +4,15 @@
   </div>
   <script src="../../dist/tapic.js"></script>
   <script>
-    const clientid = '';
     const oauth = '';
     const channel = 'monstercat';
 
     const $chat = document.getElementById('chat');
     TAPIC.listen('raw', res => addChatScroll($chat, `<p>${res}</p>`));
 
-    TAPIC.setup(clientid, oauth, username => TAPIC.joinChannel(channel));
+    TAPIC.setup(oauth, username => TAPIC.joinChannel(channel));
+
+
 
     function addChatScroll (el, text) {
       // total height of content including hidden content minus the visible height of element

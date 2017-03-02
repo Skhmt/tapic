@@ -113,7 +113,8 @@ module.exports = function (state, _event, _getJSON) {
         }
 
         if (!res || !res.chatters) {
-          return console.error('No response from "tmi.twitch.tv/group/user/:channel/chatters". This will happen from time to time.');
+          return;
+          // console.error('No response from "tmi.twitch.tv/group/user/:channel/chatters". This will happen from time to time.');
         }
         state.currentViewCount = res.chatter_count;
         // .slice(); is to set by value rather than reference
