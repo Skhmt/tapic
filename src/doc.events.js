@@ -134,16 +134,26 @@
 /**
 * Bit tip notification. Via PubSub.
 * @event bits
-* @property {string} username - The user that tipped the bits.
-* @property {string} note - Note that goes with the tip.
-* @property {number} bits - Amount of bits donated for this tip.
-* @property {number} totalBits - Total amount of bits donated.
+* @property {object} badge_entitlement - Information about the user’s new badge level, if the user reached a new badge level with this cheer; otherwise. null.
+* @property {number} bits_used - Number of bits used.
+* @property {string} channel_id - 	User ID of the channel on which bits were used.
+* @property {string} channel_name - Name of the channel on which bits were used.
+* @property {string} chat_message - Chat message sent with the cheer.
+* @property {string} context - Event type associated with this use of bits (for example, cheer).
+* @property {string} message_id - Message ID
+* @property {string} message_type - Message type (that is, the type of object contained in the data field)
+* @property {string} time - Time when the bits were used. RFC 3339 format.
+* @property {number} total_bits_used - All-time total number of bits used on this channel by the specified user.
+* @property {string} user_id - User ID of the person who used the bits.
+* @property {string} user_name - Login name of the person who used the bits.
+* @property {string} version - Message version
 */
 
 /**
-* Moderation actions. Via PubSub.
+* Moderation actions. Via PubSub. Unsupported - may not work.
 * @event moderation
-* @property {string} username - The mod that did something.
-* @property {string} action - The moderation action.
-* @property {number} args - Args.
+* @property {string} type - should be "chat_login_moderation"
+* @property {string} moderation_action - "timeout", "ban", etc
+* @property {array} args - 
+* @property {string} created_by - 
 */

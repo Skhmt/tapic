@@ -23,8 +23,9 @@ module.exports = function (state, _event) {
       type: 'LISTEN',
       data: {
         topics: [
-          'chat_moderator_actions.' + state.id + '.' + state.id,
-          'channel-bitsevents.' + state.id,
+          'chat_moderator_actions.' + state.id + '.' + state.channel_id,
+          'channel-bits-events-v1.' + state.channel_id,
+          'whispers.' + state.id
         ],
         auth_token: state.oauth,
       },
@@ -34,7 +35,7 @@ module.exports = function (state, _event) {
   }
 
   function ping() {
-    ps.send(JSON.stringify({type:"PING"}));
+    ps.send("{'type':'PING'}");
     setTimeout(ping, 120000); // 120,000 = 2 minutes
   }
 
@@ -45,11 +46,10 @@ module.exports = function (state, _event) {
 
     switch (message.type) {
       case 'PONG':
+      case 'RESPONSE':
         break;
       case 'RECONNECT':
         connect();
-        break;
-      case 'RESPONSE':
         break;
       case 'MESSAGE':
         parseMessage(message.data);
@@ -57,36 +57,36 @@ module.exports = function (state, _event) {
       default:
         console.log('Unknown message type received in pubsub.');
         console.log(message);
-        break;
     }
   }
 
   // data is message.data, so it should have msg.topic and msg.message
   function parseMessage(data) {
     switch (data.topic) {
-      // https://dev.twitch.tv/docs/PubSub/bits/
-      case 'channel-bitsevents.' + state.id:
+      // https://dev.twitch.tv/docs/v5/guides/PubSub/
+      case 'channel-bits-events-v1.' + state.channel_id:
         bits();
         break;
       // https://discuss.dev.twitch.tv/t/in-line-broadcaster-chat-mod-logs/7281/12
       case 'chat_moderator_actions.' + state.id + '.' + state.id:
         moderation();
         break;
+      case 'whispers.' + state.id:
+        whisper();
+        break;
       default:
         break;
     }
     function bits() {
-      const username = data.message.user_name;
-      const note = data.message.chat_message;
-      const bits = data.message.bits_used;
-      const totalBits = data.message.total_bits_used;
-      _event('bits', {username, note, bits, totalBits});
+      let bits = JSON.parse(data.message);
+      _event('bits', bits);
     }
     function moderation() {
-      const action = data.message.moderation_action;
-      const username = data.message.created_by;
-      const args = data.message.args;
-      _event('moderation', {username, action, args});
+      let moderation = JSON.parse(data.message).data;
+      _event('moderation', moderation);
+    }
+    function whisper() {
+      // TODO finish this
     }
   }
 };

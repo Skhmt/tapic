@@ -4,7 +4,7 @@ module.exports = {
   oauth: '',
   username: '',
   channel: '',
-  channel_id : '',
+  channel_id: '',
   id: '',
   online: '',
   game: '',
