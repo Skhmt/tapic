@@ -197,7 +197,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  oauth: '',
 	  username: '',
 	  channel: '',
-	  channel_id : '',
+	  channel_id: '',
 	  id: '',
 	  online: '',
 	  game: '',
@@ -740,7 +740,8 @@ if (typeof module == 'object') __nodeModule__ = module;
 	        }
 
 	        if (!res || !res.chatters) {
-	          return console.error('No response from "tmi.twitch.tv/group/user/:channel/chatters". This will happen from time to time.');
+	          return;
+	          // console.error('No response from "tmi.twitch.tv/group/user/:channel/chatters". This will happen from time to time.');
 	        }
 	        state.currentViewCount = res.chatter_count;
 	        // .slice(); is to set by value rather than reference
@@ -879,8 +880,9 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      type: 'LISTEN',
 	      data: {
 	        topics: [
-	          'chat_moderator_actions.' + state.id + '.' + state.id,
-	          'channel-bitsevents.' + state.id,
+	          'chat_moderator_actions.' + state.id + '.' + state.channel_id,
+	          'channel-bits-events-v1.' + state.channel_id,
+	          'whispers.' + state.id
 	        ],
 	        auth_token: state.oauth,
 	      },
@@ -890,7 +892,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  }
 
 	  function ping() {
-	    ps.send(JSON.stringify({type:"PING"}));
+	    ps.send("{'type':'PING'}");
 	    setTimeout(ping, 120000); // 120,000 = 2 minutes
 	  }
 
@@ -901,11 +903,10 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	    switch (message.type) {
 	      case 'PONG':
+	      case 'RESPONSE':
 	        break;
 	      case 'RECONNECT':
 	        connect();
-	        break;
-	      case 'RESPONSE':
 	        break;
 	      case 'MESSAGE':
 	        parseMessage(message.data);
@@ -913,36 +914,36 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      default:
 	        console.log('Unknown message type received in pubsub.');
 	        console.log(message);
-	        break;
 	    }
 	  }
 
 	  // data is message.data, so it should have msg.topic and msg.message
 	  function parseMessage(data) {
 	    switch (data.topic) {
-	      // https://dev.twitch.tv/docs/PubSub/bits/
-	      case 'channel-bitsevents.' + state.id:
+	      // https://dev.twitch.tv/docs/v5/guides/PubSub/
+	      case 'channel-bits-events-v1.' + state.channel_id:
 	        bits();
 	        break;
 	      // https://discuss.dev.twitch.tv/t/in-line-broadcaster-chat-mod-logs/7281/12
 	      case 'chat_moderator_actions.' + state.id + '.' + state.id:
 	        moderation();
 	        break;
+	      case 'whispers.' + state.id:
+	        whisper();
+	        break;
 	      default:
 	        break;
 	    }
 	    function bits() {
-	      const username = data.message.user_name;
-	      const note = data.message.chat_message;
-	      const bits = data.message.bits_used;
-	      const totalBits = data.message.total_bits_used;
-	      _event('bits', {username, note, bits, totalBits});
+	      let bits = JSON.parse(data.message);
+	      _event('bits', bits);
 	    }
 	    function moderation() {
-	      const action = data.message.moderation_action;
-	      const username = data.message.created_by;
-	      const args = data.message.args;
-	      _event('moderation', {username, action, args});
+	      let moderation = JSON.parse(data.message).data;
+	      _event('moderation', moderation);
+	    }
+	    function whisper() {
+	      // TODO finish this
 	    }
 	  }
 	};
@@ -1910,18 +1911,28 @@ if (typeof module == 'object') __nodeModule__ = module;
 	/**
 	* Bit tip notification. Via PubSub.
 	* @event bits
-	* @property {string} username - The user that tipped the bits.
-	* @property {string} note - Note that goes with the tip.
-	* @property {number} bits - Amount of bits donated for this tip.
-	* @property {number} totalBits - Total amount of bits donated.
+	* @property {object} badge_entitlement - Information about the user’s new badge level, if the user reached a new badge level with this cheer; otherwise. null.
+	* @property {number} bits_used - Number of bits used.
+	* @property {string} channel_id - 	User ID of the channel on which bits were used.
+	* @property {string} channel_name - Name of the channel on which bits were used.
+	* @property {string} chat_message - Chat message sent with the cheer.
+	* @property {string} context - Event type associated with this use of bits (for example, cheer).
+	* @property {string} message_id - Message ID
+	* @property {string} message_type - Message type (that is, the type of object contained in the data field)
+	* @property {string} time - Time when the bits were used. RFC 3339 format.
+	* @property {number} total_bits_used - All-time total number of bits used on this channel by the specified user.
+	* @property {string} user_id - User ID of the person who used the bits.
+	* @property {string} user_name - Login name of the person who used the bits.
+	* @property {string} version - Message version
 	*/
 
 	/**
-	* Moderation actions. Via PubSub.
+	* Moderation actions. Via PubSub. Unsupported - may not work.
 	* @event moderation
-	* @property {string} username - The mod that did something.
-	* @property {string} action - The moderation action.
-	* @property {number} args - Args.
+	* @property {string} type - should be "chat_login_moderation"
+	* @property {string} moderation_action - "timeout", "ban", etc
+	* @property {array} args - 
+	* @property {string} created_by - 
 	*/
 
 

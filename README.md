@@ -32,13 +32,13 @@ Navigate to the tapic directory
 
 ---
 
-### To Do (as of 2 March 2017)
+### To Do (as of 5 March 2017)
 
-* Transition whispers from irc/ws to pub/sub
 * Communities endpoint
 * Channel Feed endpoint
 * Option for message length limit check
-* Option for messages / 30 seconds limit check
+* Option for messages per 30 seconds limit check
+* (low priority) Transition whispers from irc/ws to pub/sub 
 
 ---
 
