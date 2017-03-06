@@ -11,7 +11,7 @@ module.exports = function (TAPIC, state, _getJSON) {
 
     // Getting the id of the community by its name, then joining it
     _getJSON('https://api.twitch.tv/kraken/communities/',
-      '&name=' + community,
+      '&name=' + encodeURIComponent(community),
       function (res) {
         joinCommunity(res._id);
       }

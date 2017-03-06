@@ -11,7 +11,7 @@ module.exports = function (TAPIC, _getJSON) {
     }
     _getJSON(
       'https://api.twitch.tv/kraken/users',
-      '&login=' + username,
+      '&login=' + encodeURIComponent(username),
       function (res) {
         callback(res.users[0]._id);
       }

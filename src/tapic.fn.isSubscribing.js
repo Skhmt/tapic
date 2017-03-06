@@ -11,7 +11,7 @@ module.exports = function (TAPIC, state, _getJSON) {
       return;
     }
     // https://api.twitch.tv/kraken/channels/teststate.channel/subscriptions/testuser
-    const url = 'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/subscriptions/' + user;
+    const url = 'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/subscriptions/' + encodeURIComponent(user);
     _getJSON(
       url,
       function (res) {

@@ -3,7 +3,7 @@ A Twitch API and Chat library in javascript.
 
 This works in both Node.js and modern browsers. It makes accessing chat as easy as listening to events and it automatically polls the Twitch API 
 at regular intervals, making lots of data accessible instantly that's at most a couple of seconds old, all without having to deal with 
-HTTP requests, JSONP, IRC, or anything else besides simple Javascript. At around 23KB minified, it's also light weight. 
+HTTP requests, JSONP, IRC, Websockets, or anything else besides simple Javascript. At around 23KB minified, it's also light weight. 
 
 Tapic.js has coverage of most of the Twitch API, and makes accessing those last bits easy too.
 
@@ -44,6 +44,6 @@ Navigate to the tapic directory
 
 ### Misc
 
-This was written entirely in Javascript and has no runtime dependencies besides [ws](https://www.npmjs.com/package/ws) when used in node.
+This was written entirely in Javascript and has no runtime dependencies besides "[ws](https://www.npmjs.com/package/ws)" when used in node.
 
 MIT License.

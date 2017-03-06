@@ -17,7 +17,7 @@ module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _getJSO
 
     _getJSON(
       'https://api.twitch.tv/kraken/users',
-      '&login=' + channel,
+      '&login=' + encodeURIComponent(channel),
       setState
     );
 

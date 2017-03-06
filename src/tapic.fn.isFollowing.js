@@ -11,7 +11,7 @@ module.exports = function (TAPIC, _getJSON) {
     if (typeof user != 'string' || typeof channel != 'string' || typeof callback != 'function') {
       return console.error('Invalid parameters. Usage: TAPIC.isFollowing(user_id, channel_id, callback);');
     }
-    const url = 'https://api.twitch.tv/kraken/users/' + user + '/follows/channels/' + channel;
+    const url = 'https://api.twitch.tv/kraken/users/' + encodeURIComponent(user) + '/follows/channels/' + encodeURIComponent(channel);
     _getJSON(
       url,
       function (res) {
