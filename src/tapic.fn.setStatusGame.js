@@ -1,4 +1,4 @@
-module.exports = function (TAPIC, state) {
+module.exports = function (TAPIC, state, _getJSON) {
   /**
   * Sets the status and game of the channel. Requires channel_editor permission.
   * @param  {string} status The status/title of the channel.
