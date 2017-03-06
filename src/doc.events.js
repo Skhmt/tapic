@@ -134,19 +134,19 @@
 /**
 * Bit tip notification. Via PubSub.
 * @event bits
-* @property {object} badge_entitlement - Information about the user’s new badge level, if the user reached a new badge level with this cheer; otherwise. null.
-* @property {number} bits_used - Number of bits used.
-* @property {string} channel_id - 	User ID of the channel on which bits were used.
-* @property {string} channel_name - Name of the channel on which bits were used.
-* @property {string} chat_message - Chat message sent with the cheer.
-* @property {string} context - Event type associated with this use of bits (for example, cheer).
 * @property {string} message_id - Message ID
 * @property {string} message_type - Message type (that is, the type of object contained in the data field)
-* @property {string} time - Time when the bits were used. RFC 3339 format.
-* @property {number} total_bits_used - All-time total number of bits used on this channel by the specified user.
-* @property {string} user_id - User ID of the person who used the bits.
-* @property {string} user_name - Login name of the person who used the bits.
 * @property {string} version - Message version
+* @property {object} data.badge_entitlement - Information about the user’s new badge level (.new_version and .previous_version), if the user reached a new badge level with this cheer; otherwise. null.
+* @property {number} data.bits_used - Number of bits used.
+* @property {string} data.channel_id - 	User ID of the channel on which bits were used.
+* @property {string} data.channel_name - Name of the channel on which bits were used.
+* @property {string} data.chat_message - Chat message sent with the cheer.
+* @property {string} data.context - Event type associated with this use of bits (for example, cheer).
+* @property {string} data.time - Time when the bits were used. RFC 3339 format.
+* @property {number} data.total_bits_used - All-time total number of bits used on this channel by the specified user.
+* @property {string} data.user_id - User ID of the person who used the bits.
+* @property {string} data.user_name - Login name of the person who used the bits.
 */
 
 /**

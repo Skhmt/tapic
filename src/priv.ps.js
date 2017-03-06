@@ -1,6 +1,8 @@
 module.exports = function (state, _event) {
   let ps;
 
+  let pongTimeout = '';
+
   connect();
   function connect() {
     const url = 'wss://pubsub-edge.twitch.tv';
@@ -9,34 +11,65 @@ module.exports = function (state, _event) {
       ps = new WS(url);
       ps.on('open', psOpen);
       ps.on('message', psMessage);
+      ps.on('close', psClose);
+      ps.on('error', psError);
     }
     else {
       ps = new WebSocket(url);
       ps.onopen = psOpen;
       ps.onmessage = psMessage;
+      ps.onclose = psClose;
+      ps.onerror = psError;
     }
   }
 
-  // https://dev.twitch.tv/docs/PubSub/overview/
+  // https://dev.twitch.tv/docs/v5/guides/PubSub/
   function psOpen() {
     let frame = {
       type: 'LISTEN',
+      nonce: 'listenToTopics',
       data: {
         topics: [
-          'chat_moderator_actions.' + state.id + '.' + state.channel_id,
           'channel-bits-events-v1.' + state.channel_id,
-          'whispers.' + state.id
+          'chat_moderator_actions.' + state.id + '.' + state.channel_id,
+          'whispers.' + state.id,
         ],
         auth_token: state.oauth,
       },
     };
-    ps.send(JSON.stringify(frame));
+    try {
+      ps.send(JSON.stringify(frame));
+    } catch(e) {
+      setTimeout(function() {
+        ps.send(JSON.stringify(frame));
+      }, 1000);
+    }
     ping();
   }
 
+  function psClose() {
+    connect();
+  }
+
+  function psError(err) {
+    console.error('pubsub error');
+    console.log(err);
+  }
+
   function ping() {
-    ps.send("{'type':'PING'}");
-    setTimeout(ping, 120000); // 120,000 = 2 minutes
+    try {
+      ps.send('{"type":"PING"}');
+    } catch(err) {
+      setTimeout(function() {
+        ps.send('{"type":"PING"}');
+      }, 2000);
+    }
+    
+    setTimeout(ping, 60000); // 60,000 = 1 minute
+
+    pongTimeout = setTimeout(function() {
+      connect();
+    }, 10000); // if pong isn't received within 10 seconds, reconnect
   }
 
   function psMessage(event) {
@@ -46,6 +79,8 @@ module.exports = function (state, _event) {
 
     switch (message.type) {
       case 'PONG':
+        clearTimeout(pongTimeout);
+        break;
       case 'RESPONSE':
         break;
       case 'RECONNECT':
@@ -55,7 +90,7 @@ module.exports = function (state, _event) {
         parseMessage(message.data);
         break;
       default:
-        console.log('Unknown message type received in pubsub.');
+        console.log('Uncaught message type received in pubsub.');
         console.log(message);
     }
   }
@@ -77,16 +112,21 @@ module.exports = function (state, _event) {
       default:
         break;
     }
+
     function bits() {
       let bits = JSON.parse(data.message);
       _event('bits', bits);
     }
+
     function moderation() {
       let moderation = JSON.parse(data.message).data;
       _event('moderation', moderation);
     }
+
     function whisper() {
-      // TODO finish this
+      let message = JSON.parse(data.message).data_object;
+      // TODO: figure out why some whispers are dropped...
+      // _event('whisper', message);
     }
   }
 };
