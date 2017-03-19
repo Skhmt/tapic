@@ -3,7 +3,7 @@
 * Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 4.1.0
+* @version 4.1.1
 *
 * @module TAPIC
 */
@@ -945,6 +945,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      case 3: // CLOSED
 	        _event('dev', 'pubsub - reconnect: send() - closing/closed state');
 	        connect();
+	        setTimeout(function () { send(msg); }, 2000);
 	        break;
 	      case 1: // OPEN
 	        try {

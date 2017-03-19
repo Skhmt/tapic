@@ -85,6 +85,7 @@ module.exports = function (state, _event) {
       case 3: // CLOSED
         _event('dev', 'pubsub - reconnect: send() - closing/closed state');
         connect();
+        setTimeout(function () { send(msg); }, 2000);
         break;
       case 1: // OPEN
         try {
