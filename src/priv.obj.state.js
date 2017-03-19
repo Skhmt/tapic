@@ -41,4 +41,5 @@ module.exports = {
   },
   teamDisplayName: '',
   teamName: '',
+  startTime: 0,
 };

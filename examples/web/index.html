@@ -117,6 +117,11 @@
 		console.info('TAPIC has updated its info from Twitch.');
 	});
 
+	// You probably don't want to actually ever listen to 'dev' unless you're modifying TAPIC.js itself. Even then, it's marginally useful.
+	TAPIC.listen('dev', function (e) {
+		console.info(e);
+	});
+
 	// Utility functions
 	function tests() {
 		// TAPIC.sendChat( 'Hello world!' );
@@ -179,6 +184,7 @@
 		TAPIC.findID('tokimonster', function (res) {
 			console.log( 'findID: ' +  res);
 		});
+		console.log( 'getTapicUptime: ' + TAPIC.getTapicUptime().hours + ':' + TAPIC.getTapicUptime().minutes + ':' + TAPIC.getTapicUptime().seconds)
 		// TAPIC.kraken('games/top/', '&limit=100&offset=0', function (response) {...});
 	}
 

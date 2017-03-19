@@ -104,7 +104,7 @@ module.exports = function (state, _event, _getJSON) {
       }
     );
 
-    // This is an undocumented/supported API - it hasn't been updated to v5. It uses channel NAME
+    // This is an undocumented/unsupported API - it hasn't been updated to v5. It uses channel NAME
     _getJSON(
       'https://tmi.twitch.tv/group/user/' + state.channel + '/chatters',
       function (res) {
@@ -129,17 +129,12 @@ module.exports = function (state, _event, _getJSON) {
       }
     );
 
+    // This is an undocumented/unsupported API - it hasn't been udpated to v5. It uses channel NAME
     _getJSON(
-      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/teams',
+      'https://api.twitch.tv//api/channels/' + state.channel + '/ember',
       function (res) {
-        if (typeof res.teams[0] !== 'undefined') {
-          state.teamDisplayName = res.teams[0].display_name;
-          state.teamName = res.teams[0].name;
-        }
-        else {
-          state.teamDisplayName = '';
-          state.teamName = '';
-        }
+        state.teamDisplayName = res.primary_team_display_name;
+        state.teamName = res.primary_team_name;
         teams = true;
         _pingFinished();
       }

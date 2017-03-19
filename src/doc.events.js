@@ -157,3 +157,11 @@
 * @property {array} args - 
 * @property {string} created_by - 
 */
+
+/**
+* Dev status events sent by TAPIC. All errors are sent to the console, this is strictly for non-errors. 
+* This will never probably have full coverage and is intended for use when modifying TAPIC.js itself. 
+* Therefore, probably don't listen to this topic in production. Or at all.
+* @event dev
+* @property {string} message - the message
+*/

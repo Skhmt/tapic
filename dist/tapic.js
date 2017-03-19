@@ -3,7 +3,7 @@
 * Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 4.0.4
+* @version 4.1.0
 *
 * @module TAPIC
 */
@@ -98,6 +98,8 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    
 	    state.oauth = oauth.replace('oauth:', '');
 
+	    state.startTime = Date.now();
+
 	    _getJSON('https://api.twitch.tv/kraken', function (res) {
 	      if (res.error && res.error === "Bad Request") {
 	        console.error('Invalid Client ID or Oauth token.');
@@ -120,7 +122,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      _ws = new WebSocket(twitchWS);
 	    }
 
-	    __webpack_require__(11)(state, _ws, _parseMessage, callback);
+	    __webpack_require__(11)(state, _ws, _parseMessage, _event, callback);
 	    __webpack_require__(12)(state, _event);
 
 	    // TAPIC.joinChannel(channel, callback)
@@ -161,9 +163,12 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	    // TAPIC.kraken(path, [params ,] callback)
 	    __webpack_require__(25)(TAPIC, _getJSON);
+
+	    // TAPIC.getUptime()
+	    __webpack_require__(26)(TAPIC, state);
 	  } // init()
 
-	  __webpack_require__(26);
+	  __webpack_require__(27);
 
 	  return TAPIC;
 	}
@@ -234,6 +239,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  },
 	  teamDisplayName: '',
 	  teamName: '',
+	  startTime: 0,
 	};
 
 
@@ -731,7 +737,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      }
 	    );
 
-	    // This is an undocumented/supported API - it hasn't been updated to v5. It uses channel NAME
+	    // This is an undocumented/unsupported API - it hasn't been updated to v5. It uses channel NAME
 	    _getJSON(
 	      'https://tmi.twitch.tv/group/user/' + state.channel + '/chatters',
 	      function (res) {
@@ -756,17 +762,12 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      }
 	    );
 
+	    // This is an undocumented/unsupported API - it hasn't been udpated to v5. It uses channel NAME
 	    _getJSON(
-	      'https://api.twitch.tv/kraken/channels/' + state.channel_id + '/teams',
+	      'https://api.twitch.tv//api/channels/' + state.channel + '/ember',
 	      function (res) {
-	        if (typeof res.teams[0] !== 'undefined') {
-	          state.teamDisplayName = res.teams[0].display_name;
-	          state.teamName = res.teams[0].name;
-	        }
-	        else {
-	          state.teamDisplayName = '';
-	          state.teamName = '';
-	        }
+	        state.teamDisplayName = res.primary_team_display_name;
+	        state.teamName = res.primary_team_name;
 	        teams = true;
 	        _pingFinished();
 	      }
@@ -816,7 +817,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = function (state, _ws, _parseMessage, callback) {
+	module.exports = function (state, _ws, _parseMessage, _event, callback) {
 	  // handling messages
 	  if (__webpack_require__(2)) {
 	    _ws.on('open', wsOpen);
@@ -827,6 +828,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  }
 
 	  function wsOpen() {
+	    _event('dev', 'chat - connected successfully');
 	    _ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
 	    _ws.send('PASS oauth:' + state.oauth);
 	    _ws.send('NICK ' + state.username);
@@ -841,6 +843,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    for (let i = 0; i < messages.length; i++) {
 	      let msg = messages[i];
 	      if (msg === 'PING :tmi.twitch.tv') {
+	        _event('dev', 'chat - PONG sent');
 	        _ws.send('PONG :tmi.twitch.tv');
 	      } else if (msg) {
 	        _parseMessage(msg);
@@ -858,10 +861,19 @@ if (typeof module == 'object') __nodeModule__ = module;
 	module.exports = function (state, _event) {
 	  let ps;
 
-	  let pongTimeout = '';
+	  let pongTimeout;
+	  let pingTimeout;
 
 	  connect();
 	  function connect() {
+	    // cleaning up things
+	    clearTimeout(pingTimeout);
+	    clearTimeout(pongTimeout);
+	    // WebSocket.CONNECTING, WebSocket.OPEN, WebSocket.CLOSING, WebSocket.CLOSED
+	    if (typeof ps === 'object') {
+	      if (ps.readyState === 1 || ps.readyState === 0) close();
+	    }
+
 	    const url = 'wss://pubsub-edge.twitch.tv';
 	    if (__webpack_require__(2)) {
 	      let WS = __webpack_require__(10);
@@ -882,6 +894,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	  // https://dev.twitch.tv/docs/v5/guides/PubSub/
 	  function psOpen() {
+	    _event('dev', 'pubsub - connected successfully');
 	    let frame = {
 	      type: 'LISTEN',
 	      nonce: 'listenToTopics',
@@ -894,39 +907,62 @@ if (typeof module == 'object') __nodeModule__ = module;
 	        auth_token: state.oauth,
 	      },
 	    };
-	    try {
-	      ps.send(JSON.stringify(frame));
-	    } catch(e) {
-	      setTimeout(function() {
-	        ps.send(JSON.stringify(frame));
-	      }, 1000);
-	    }
+
+	    send(JSON.stringify(frame));
+
 	    ping();
 	  }
 
 	  function psClose() {
+	    _event('dev', 'pubsub - reconnect: psClose()');
 	    connect();
 	  }
 
 	  function psError(err) {
 	    console.error('pubsub error');
-	    console.log(err);
+	    console.error(err);
 	  }
 
 	  function ping() {
-	    try {
-	      ps.send('{"type":"PING"}');
-	    } catch(err) {
-	      setTimeout(function() {
-	        ps.send('{"type":"PING"}');
-	      }, 2000);
-	    }
+	    send('{"type":"PING"}');
+	    _event('dev', 'pubsub - PING sent');
 	    
-	    setTimeout(ping, 60000); // 60,000 = 1 minute
+	    pingTimeout = setTimeout(ping, 60*1000);
 
-	    pongTimeout = setTimeout(function() {
+	    pongTimeout = setTimeout(function () {
+	      _event('dev', 'pubsub - reconnect: ping() - pong timeout');
 	      connect();
 	    }, 10000); // if pong isn't received within 10 seconds, reconnect
+	  }
+
+	  // this provides some preventative error handling because the pubsub edge seems to be unstable
+	  function send(msg) {
+	    switch(ps.readyState) {
+	      case 0: // CONNECTING
+	        setTimeout(function () { send(msg); }, 1000);
+	        break;
+	      case 2: // CLOSING
+	      case 3: // CLOSED
+	        _event('dev', 'pubsub - reconnect: send() - closing/closed state');
+	        connect();
+	        break;
+	      case 1: // OPEN
+	        try {
+	          ps.send(msg);
+	        } catch (err) {
+	          console.error(err);
+	          setTimeout(function () { send(msg); }, 1500);
+	        }
+	        break;
+	      default:
+	        break;
+			}
+	  }
+
+	  function close() {
+	    if (__webpack_require__(2)) ps.on('close', function () {});
+	    else ps.onclose = function () {};
+	    ps.close();
 	  }
 
 	  function psMessage(event) {
@@ -936,19 +972,20 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	    switch (message.type) {
 	      case 'PONG':
+	        _event('dev', 'pubsub - PONG received');
 	        clearTimeout(pongTimeout);
 	        break;
 	      case 'RESPONSE':
 	        break;
 	      case 'RECONNECT':
+	        _event('dev', 'pubsub - reconnect: psMessage() - was sent RECONNECT message');
 	        connect();
 	        break;
 	      case 'MESSAGE':
 	        parseMessage(message.data);
 	        break;
 	      default:
-	        console.log('Uncaught message type received in pubsub.');
-	        console.log(message);
+	        _event('dev', 'pubsub uncaught message type:' + message);
 	    }
 	  }
 
@@ -1761,6 +1798,37 @@ if (typeof module == 'object') __nodeModule__ = module;
 /* 26 */
 /***/ function(module, exports) {
 
+	module.exports = function (TAPIC, state) {
+	  /**
+	  * Gets the uptime that TAPIC has been running. This is not the stream's uptime. 
+	  * @return {object} "total" is the total uptime in miliseconds, if you want to parse it yourself. "hours", "minutes", and "seconds" are integers meant to be used together.
+	  * @function getTapicUptime
+	  */
+	  TAPIC.getTapicUptime = function () {
+	    let total = Date.now() - state.startTime;
+
+	    let totalSeconds = total / 1000;
+	    let seconds = (totalSeconds % 60)|0;
+
+	    let totalMinutes = totalSeconds / 60;
+	    let minutes = (totalMinutes % 60)|0;
+
+	    let hours = (totalMinutes / 60)|0;
+
+	    return {
+	      total,
+	      seconds,
+	      minutes,
+	      hours,
+	    };
+	  };
+	};
+
+
+/***/ },
+/* 27 */
+/***/ function(module, exports) {
+
 	/**
 	* Every RAW TMI message from the standard chat server. You most likely won't be using this unless you need to parse for something that TAPIC.js doesn't already have a listener for.
 	* @event raw
@@ -1921,6 +1989,13 @@ if (typeof module == 'object') __nodeModule__ = module;
 	* @property {string} created_by - 
 	*/
 
+	/**
+	* Dev status events sent by TAPIC. All errors are sent to the console, this is strictly for non-errors. 
+	* This will never probably have full coverage and is intended for use when modifying TAPIC.js itself. 
+	* Therefore, probably don't listen to this topic in production. Or at all.
+	* @event dev
+	* @property {string} message - the message
+	*/
 
 /***/ }
 /******/ ]);

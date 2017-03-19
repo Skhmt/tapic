@@ -27,6 +27,8 @@ function define_TAPIC() {
     
     state.oauth = oauth.replace('oauth:', '');
 
+    state.startTime = Date.now();
+
     _getJSON('https://api.twitch.tv/kraken', function (res) {
       if (res.error && res.error === "Bad Request") {
         console.error('Invalid Client ID or Oauth token.');
@@ -49,7 +51,7 @@ function define_TAPIC() {
       _ws = new WebSocket(twitchWS);
     }
 
-    require('./priv.ws')(state, _ws, _parseMessage, callback);
+    require('./priv.ws')(state, _ws, _parseMessage, _event, callback);
     require('./priv.ps')(state, _event);
 
     // TAPIC.joinChannel(channel, callback)
@@ -90,6 +92,9 @@ function define_TAPIC() {
 
     // TAPIC.kraken(path, [params ,] callback)
     require('./tapic.fn.kraken')(TAPIC, _getJSON);
+
+    // TAPIC.getUptime()
+    require('./tapic.fn.getTapicUptime')(TAPIC, state);
   } // init()
 
   require('./doc.events');

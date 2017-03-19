@@ -1,4 +1,4 @@
-module.exports = function (state, _ws, _parseMessage, callback) {
+module.exports = function (state, _ws, _parseMessage, _event, callback) {
   // handling messages
   if (require('./isNode')) {
     _ws.on('open', wsOpen);
@@ -9,6 +9,7 @@ module.exports = function (state, _ws, _parseMessage, callback) {
   }
 
   function wsOpen() {
+    _event('dev', 'chat - connected successfully');
     _ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership');
     _ws.send('PASS oauth:' + state.oauth);
     _ws.send('NICK ' + state.username);
@@ -23,6 +24,7 @@ module.exports = function (state, _ws, _parseMessage, callback) {
     for (let i = 0; i < messages.length; i++) {
       let msg = messages[i];
       if (msg === 'PING :tmi.twitch.tv') {
+        _event('dev', 'chat - PONG sent');
         _ws.send('PONG :tmi.twitch.tv');
       } else if (msg) {
         _parseMessage(msg);

@@ -1,10 +1,19 @@
 module.exports = function (state, _event) {
   let ps;
 
-  let pongTimeout = '';
+  let pongTimeout;
+  let pingTimeout;
 
   connect();
   function connect() {
+    // cleaning up things
+    clearTimeout(pingTimeout);
+    clearTimeout(pongTimeout);
+    // WebSocket.CONNECTING, WebSocket.OPEN, WebSocket.CLOSING, WebSocket.CLOSED
+    if (typeof ps === 'object') {
+      if (ps.readyState === 1 || ps.readyState === 0) close();
+    }
+
     const url = 'wss://pubsub-edge.twitch.tv';
     if (require('./isNode')) {
       let WS = require('ws');
@@ -25,6 +34,7 @@ module.exports = function (state, _event) {
 
   // https://dev.twitch.tv/docs/v5/guides/PubSub/
   function psOpen() {
+    _event('dev', 'pubsub - connected successfully');
     let frame = {
       type: 'LISTEN',
       nonce: 'listenToTopics',
@@ -37,39 +47,62 @@ module.exports = function (state, _event) {
         auth_token: state.oauth,
       },
     };
-    try {
-      ps.send(JSON.stringify(frame));
-    } catch(e) {
-      setTimeout(function() {
-        ps.send(JSON.stringify(frame));
-      }, 1000);
-    }
+
+    send(JSON.stringify(frame));
+
     ping();
   }
 
   function psClose() {
+    _event('dev', 'pubsub - reconnect: psClose()');
     connect();
   }
 
   function psError(err) {
     console.error('pubsub error');
-    console.log(err);
+    console.error(err);
   }
 
   function ping() {
-    try {
-      ps.send('{"type":"PING"}');
-    } catch(err) {
-      setTimeout(function() {
-        ps.send('{"type":"PING"}');
-      }, 2000);
-    }
+    send('{"type":"PING"}');
+    _event('dev', 'pubsub - PING sent');
     
-    setTimeout(ping, 60000); // 60,000 = 1 minute
+    pingTimeout = setTimeout(ping, 60*1000);
 
-    pongTimeout = setTimeout(function() {
+    pongTimeout = setTimeout(function () {
+      _event('dev', 'pubsub - reconnect: ping() - pong timeout');
       connect();
     }, 10000); // if pong isn't received within 10 seconds, reconnect
+  }
+
+  // this provides some preventative error handling because the pubsub edge seems to be unstable
+  function send(msg) {
+    switch(ps.readyState) {
+      case 0: // CONNECTING
+        setTimeout(function () { send(msg); }, 1000);
+        break;
+      case 2: // CLOSING
+      case 3: // CLOSED
+        _event('dev', 'pubsub - reconnect: send() - closing/closed state');
+        connect();
+        break;
+      case 1: // OPEN
+        try {
+          ps.send(msg);
+        } catch (err) {
+          console.error(err);
+          setTimeout(function () { send(msg); }, 1500);
+        }
+        break;
+      default:
+        break;
+		}
+  }
+
+  function close() {
+    if (require('./isNode')) ps.on('close', function () {});
+    else ps.onclose = function () {};
+    ps.close();
   }
 
   function psMessage(event) {
@@ -79,19 +112,20 @@ module.exports = function (state, _event) {
 
     switch (message.type) {
       case 'PONG':
+        _event('dev', 'pubsub - PONG received');
         clearTimeout(pongTimeout);
         break;
       case 'RESPONSE':
         break;
       case 'RECONNECT':
+        _event('dev', 'pubsub - reconnect: psMessage() - was sent RECONNECT message');
         connect();
         break;
       case 'MESSAGE':
         parseMessage(message.data);
         break;
       default:
-        console.log('Uncaught message type received in pubsub.');
-        console.log(message);
+        _event('dev', 'pubsub uncaught message type:' + message);
     }
   }
 

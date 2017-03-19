@@ -10,11 +10,11 @@
   },
   "description": "A simple Twitch API and Chat library.",
   "devDependencies": {
-    "jsdoc": "latest",
-    "docdash": "latest",
-    "jshint": "latest",
-    "webpack": "latest",
-    "google-closure-compiler-js": "latest"
+    "jsdoc": "^3.4.2",
+    "docdash": "^0.4.0",
+    "jshint": "^2.9.4",
+    "webpack": "^1.13.3",
+    "google-closure-compiler-js": "^20161024.0.0"
   },
   "directories": {},
   "homepage": "https://github.com/skhmt/tapic.js#readme",
@@ -44,5 +44,5 @@
     "build:header": "node ./scripts/header.js ./dist/tapic.js ./dist/tapic.min.js",
     "build": "npm run build:min && npm run build:js && npm run build:header && npm run docs && npm run lint"
   },
-  "version": "4.0.4"
+  "version": "4.1.0"
 }
