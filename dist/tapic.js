@@ -3,7 +3,7 @@
 * Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 4.1.1
+* @version 5.0.0
 *
 * @module TAPIC
 */
@@ -1200,7 +1200,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  /**
 	  * Checks if "user" is subscribed to the current channel. This is an asynchronous function and requires a callback. Requires the channel_check_subscription permission and the username and channel must be the same.
 	  * @param  {string} user     The user id to check.
-	  * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isSubscribing (boolean) and dateSubscribed (string).
+	  * @param  {function} callback The function that's called when the check is complete. Callback is given an object with isSubscribing (boolean), dateSubscribed (string), sub_plan (string), and sub_plan_name (string).
 	  * @function isSubscribing
 	  */
 	  TAPIC.isSubscribing = function (user, callback) {
@@ -1220,7 +1220,9 @@ if (typeof module == 'object') __nodeModule__ = module;
 	        } else {
 	          callback({
 	            isSubscribing: true,
-	            dateSubscribed: (new Date(res.created_at).toLocaleString())
+	            dateSubscribed: (new Date(res.created_at).toLocaleString()),
+	            sub_plan: res.sub_plan,
+	            sub_plan_name: res.sub_plan_name,
 	          });
 	        }
 	      }
@@ -1472,7 +1474,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  };
 
 	  /**
-	  * Gets the subscriber status of the user in the channel.
+	  * Gets the subscriber status of the tapic user in the channel.
 	  * @return {boolean} True if a subscriber, false if not.
 	  * @function getSub
 	  */
@@ -1953,12 +1955,6 @@ if (typeof module == 'object') __nodeModule__ = module;
 	* @property {string} planName - Name of the plan.
 	* @property {string} sysMsg - What the system normally outputs, usually: "TWITCH_UserName\shas\ssubscribed\sfor\s6\smonths!".
 	* @property {string} joinedText - Message the user wants to include with the sub.
-	*/
-
-	/**
-	* Number of subscribers since you've been offline.
-	* @event subsAway
-	* @property {string} - Number of subscribers.
 	*/
 
 	/**
