@@ -41,6 +41,7 @@ module.exports = function (state, _event) {
       data: {
         topics: [
           'channel-bits-events-v1.' + state.channel_id,
+          // 'channel-subscribe-events-v1.' + state.channel_id,
           'chat_moderator_actions.' + state.id + '.' + state.channel_id,
           'whispers.' + state.id,
         ],
@@ -144,6 +145,9 @@ module.exports = function (state, _event) {
       case 'whispers.' + state.id:
         whisper();
         break;
+      // case 'channel-subscribe-events-v1.' + state.channel_id:
+      //   sub();
+      //   break;
       default:
         break;
     }
@@ -163,5 +167,10 @@ module.exports = function (state, _event) {
       // TODO: figure out why some whispers are dropped...
       // _event('whisper', message);
     }
+
+    // function sub() {
+    //   // TODO: https://discuss.dev.twitch.tv/t/subscriptions-beta-changes/10023
+    // }
+
   }
 };

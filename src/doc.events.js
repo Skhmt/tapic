@@ -97,29 +97,18 @@
 */
 
 /**
-* First time subscription notification.
+* Subscription notification. These only show up if the user decides to share their sub/resub. 
 * @event sub
-* @property {string} - The user that subscribed to the channel.
-*/
-
-/**
-* Twitch Prime subscription notification.
-* @event subPrime
-* @property {string} - The user that subscribed to the channel.
-*/
-
-/**
-* Resubscription and months and maybe message notification.
-* @event subMonths
-* @property {string} name - The name of the person that resubscribed.
-* @property {number} months - Number of months subscribed. Alternatively, number resubscribes + 1.
-* @property {string} message - Optional resub message.
-*/
-
-/**
-* Number of subscribers since you've been offline.
-* @event subsAway
-* @property {string} - Number of subscribers.
+* @property {string} name - The user that subscribed to the channel.
+* @property {number} user_id - User's unique twitch id number.
+* @property {string} user_type - User's type. For example: staff.
+* @property {number} room_id - Twitch id of the room being sub'd to.
+* @property {number} months - Number of months subscribed for.
+* @property {boolean} resub - True if a resub, false if a new subscriber.
+* @property {string} plan - Possible values are: "Prime", "1000", "2000", or "3000".
+* @property {string} planName - Name of the plan.
+* @property {string} sysMsg - What the system normally outputs, usually: "TWITCH_UserName\shas\ssubscribed\sfor\s6\smonths!".
+* @property {string} joinedText - Message the user wants to include with the sub.
 */
 
 /**

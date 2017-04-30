@@ -236,7 +236,7 @@ module.exports = function (TAPIC, state) {
   };
 
   /**
-  * Gets the subscriber status of the user in the channel.
+  * Gets the subscriber status of the tapic user in the channel.
   * @return {boolean} True if a subscriber, false if not.
   * @function getSub
   */

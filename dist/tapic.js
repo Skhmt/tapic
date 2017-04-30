@@ -454,8 +454,8 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      _msgUserstate(textarray);
 	    }
 	    else if (textarray[2] === 'USERNOTICE') {
-	      // sub notifications for now, may change in the future
-	      // @badges=staff/1,broadcaster/1,turbo/1;color=#008000;display-name=TWITCHstate.username;emotes=;mod=0;msg-id=resub;msg-param-months=6;room-id=1337;subscriber=1;system-msg=TWITCHstate.username\shas\ssubscribed\sfor\s6\smonths!;login=twitchstate.username;turbo=1;user-id=1337;user-type=staff :tmi.twitch.tv USERNOTICE #channel :Great stream -- keep it up!
+	      // sub notifications
+	      // @badges=staff/1,broadcaster/1,turbo/1;color=#008000;display-name=TWITCH_UserName;emotes=;mod=0;msg-id=sub/resub;msg-param-months=6;room-id=1337;subscriber=1;msg-param-sub-plan=Prime/1000/2000/3000;msg-param-sub-plan-name=Channel\sSubscription\s(display_name);system-msg=TWITCH_UserName\shas\ssubscribed\sfor\s6\smonths!;login=twitch_username;turbo=1;user-id=1337;user-type=staff :tmi.twitch.tv USERNOTICE #channel :Great stream -- keep it up!
 	      _msgSub(textarray);
 	    }
 	    else {
@@ -528,34 +528,21 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    }
 	    let joinedText = text.join(' ').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-	    if (msgTags.get('display-name') === 'twitchnotify') { // sub notification
-
-	      if (text[2] === 'subscribed!') { // "[name] just subscribed!"
-	        _event('sub', text[0]);
-	      }
-	      else if (text[2] === 'subscribed') { // "[name] just subscribed with Twitch Prime!"
-	        _event('subPrime', text[0]);
-	      }
-	      else if (text[2] === 'resubscribed') { // "[number] viewers resubscribed while you were away!"
-	        _event('subsAway', text[0]);
-	      }
-	    } else { // regular message
-	      _event('message', {
-	        from: msgTags.get('display-name'),
-	        color: msgTags.get('color'),
-	        mod: (msgTags.get('mod') == 1),
-	        sub: (msgTags.get('subscriber') == 1),
-	        turbo: (msgTags.get('turbo') == 1),
-	        streamer: (msgTags.get('display-name').toLowerCase() === state.channel.toLowerCase()),
-	        action: action,
-	        text: joinedText,
-	        emotes: msgTags.get('emotes'),
-	        badges: msgTags.get('badges'),
-	        room_id: msgTags.get('room-id'),
-	        user_id: msgTags.get('user-id'),
-	        bits: msgTags.get('bits'),
-	      });
-	    }
+	    _event('message', {
+	      from: msgTags.get('display-name'),
+	      color: msgTags.get('color'),
+	      mod: (msgTags.get('mod') == 1),
+	      sub: (msgTags.get('subscriber') == 1),
+	      turbo: (msgTags.get('turbo') == 1),
+	      streamer: (msgTags.get('display-name').toLowerCase() === state.channel.toLowerCase()),
+	      action: action,
+	      text: joinedText,
+	      emotes: msgTags.get('emotes'),
+	      badges: msgTags.get('badges'),
+	      room_id: msgTags.get('room-id'),
+	      user_id: msgTags.get('user-id'),
+	      bits: msgTags.get('bits'),
+	    });
 	  }
 
 	  function _msgNotice (textarray) {
@@ -615,11 +602,27 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    const usernoticeParams = _parseTags(textarray[0]);
 
 	    const joinedText = textarray.slice(4).join(' ').substring(1);
+	    const months = usernoticeParams.get('msg-param-months');
+	    const name = usernoticeParams.get('display-name');
+	    const resub = usernoticeParams.get('msg-id') == 'resub'; // 'sub' or 'resub'
+	    const plan = usernoticeParams.get('msg-param-sub-plan'); // Prime/1000/2000/3000
+	    const planName = usernoticeParams.get('msg-param-sub-plan-name');
+	    const sysMsg = usernoticeParams.get('system-msg'); // TWITCH_UserName\shas\ssubscribed\sfor\s6\smonths!
+	    const user_id = usernoticeParams.get('user-id'); // ########
+	    const user_type = usernoticeParams.get('user-type'); // staff
+	    const room_id = usernoticeParams.get('room-id');
 
-	    _event('subMonths', {
-	      name: usernoticeParams.get('display-name'),
-	      months: usernoticeParams.get('msg-param-months'),
-	      message: joinedText
+	    _event('sub', {
+	      name,
+	      user_id,
+	      user_type,
+	      room_id,
+	      months,
+	      resub,
+	      plan,
+	      planName,
+	      sysMsg,
+	      joinedText,
 	    });
 	  }
 
@@ -901,6 +904,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      data: {
 	        topics: [
 	          'channel-bits-events-v1.' + state.channel_id,
+	          // 'channel-subscribe-events-v1.' + state.channel_id,
 	          'chat_moderator_actions.' + state.id + '.' + state.channel_id,
 	          'whispers.' + state.id,
 	        ],
@@ -1004,6 +1008,9 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      case 'whispers.' + state.id:
 	        whisper();
 	        break;
+	      // case 'channel-subscribe-events-v1.' + state.channel_id:
+	      //   sub();
+	      //   break;
 	      default:
 	        break;
 	    }
@@ -1023,6 +1030,11 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      // TODO: figure out why some whispers are dropped...
 	      // _event('whisper', message);
 	    }
+
+	    // function sub() {
+	    //   // TODO: https://discuss.dev.twitch.tv/t/subscriptions-beta-changes/10023
+	    // }
+
 	  }
 	};
 
@@ -1929,23 +1941,18 @@ if (typeof module == 'object') __nodeModule__ = module;
 	*/
 
 	/**
-	* First time subscription notification.
+	* Subscription notification. These only show up if the user decides to share their sub/resub. 
 	* @event sub
-	* @property {string} - The user that subscribed to the channel.
-	*/
-
-	/**
-	* Twitch Prime subscription notification.
-	* @event subPrime
-	* @property {string} - The user that subscribed to the channel.
-	*/
-
-	/**
-	* Resubscription and months and maybe message notification.
-	* @event subMonths
-	* @property {string} name - The name of the person that resubscribed.
-	* @property {number} months - Number of months subscribed. Alternatively, number resubscribes + 1.
-	* @property {string} message - Optional resub message.
+	* @property {string} name - The user that subscribed to the channel.
+	* @property {number} user_id - User's unique twitch id number.
+	* @property {string} user_type - User's type. For example: staff.
+	* @property {number} room_id - Twitch id of the room being sub'd to.
+	* @property {number} months - Number of months subscribed for.
+	* @property {boolean} resub - True if a resub, false if a new subscriber.
+	* @property {string} plan - Possible values are: "Prime", "1000", "2000", or "3000".
+	* @property {string} planName - Name of the plan.
+	* @property {string} sysMsg - What the system normally outputs, usually: "TWITCH_UserName\shas\ssubscribed\sfor\s6\smonths!".
+	* @property {string} joinedText - Message the user wants to include with the sub.
 	*/
 
 	/**
