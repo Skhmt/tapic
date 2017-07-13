@@ -9,7 +9,7 @@ module.exports = function (TAPIC, _getJSON) {
   TAPIC.isFollowing = function (user, channel, callback) {
     // https://api.twitch.tv/kraken/users/skhmt/follows/channels/food
     if ((typeof user != 'string' && typeof user != 'number') || 
-        (typeof channel != 'string' && typeof channel != 'number) || 
+        (typeof channel != 'string' && typeof channel != 'number') || 
          typeof callback != 'function') {
       return console.error('Invalid parameters. Usage: TAPIC.isFollowing(user_id, channel_id, callback);');
     }
