@@ -1,14 +1,13 @@
 module.exports = function (state) {
   function _getJSON (path, params, callback) {
-
+    const timeoutLength = 5;
     let timeout = setTimeout(function() {
-      return callback('');
-    }, 4000);
+      return callback({error:`Request timeout after ${timeoutLength} seconds.`});
+    }, timeoutLength * 1000);
 
     const oauthString = '?oauth_token=' + state.oauth;
     const apiString = '&api_version=5';
 
-    // let url = path + oauthString + apiString + clientString;
     let url = path + oauthString + apiString;
     if (state.clientid) url += '&client_id=' + state.clientid;
     if (typeof params === 'string') {
@@ -18,6 +17,7 @@ module.exports = function (state) {
     }
 
     if (typeof callback !== 'function') return console.error('Callback needed.');
+    
     if (require('./isNode')) { // No jsonp required, so using http.get
       let http = require('https');
       http.get(url, function (res) {
@@ -52,7 +52,7 @@ module.exports = function (state) {
         clearTimeout(timeout);
         return console.error(e.message + '@' + path);
       });
-    } else {
+    } else { //jsonp for browsers
       // Keep trying to make a random callback name until it finds a unique one.
       let randomCallback;
       do {
@@ -68,6 +68,9 @@ module.exports = function (state) {
       let node = document.createElement('script');
       node.id = randomCallback;
       node.src = url + '&callback=' + randomCallback;
+      node.onerror = ev => {
+        // can do something with an error here... but not going to.
+      };
 
       try {
         document.getElementById('tapicJsonpContainer').appendChild(node);

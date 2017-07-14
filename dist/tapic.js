@@ -3,7 +3,7 @@
 * Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 5.0.0
+* @version 5.0.1
 *
 * @module TAPIC
 */
@@ -304,15 +304,14 @@ if (typeof module == 'object') __nodeModule__ = module;
 
 	module.exports = function (state) {
 	  function _getJSON (path, params, callback) {
-
+	    const timeoutLength = 5;
 	    let timeout = setTimeout(function() {
-	      return callback('');
-	    }, 4000);
+	      return callback({error:`Request timeout after ${timeoutLength} seconds.`});
+	    }, timeoutLength * 1000);
 
 	    const oauthString = '?oauth_token=' + state.oauth;
 	    const apiString = '&api_version=5';
 
-	    // let url = path + oauthString + apiString + clientString;
 	    let url = path + oauthString + apiString;
 	    if (state.clientid) url += '&client_id=' + state.clientid;
 	    if (typeof params === 'string') {
@@ -322,6 +321,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    }
 
 	    if (typeof callback !== 'function') return console.error('Callback needed.');
+	    
 	    if (__webpack_require__(2)) { // No jsonp required, so using http.get
 	      let http = __webpack_require__(6);
 	      http.get(url, function (res) {
@@ -356,7 +356,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	        clearTimeout(timeout);
 	        return console.error(e.message + '@' + path);
 	      });
-	    } else {
+	    } else { //jsonp for browsers
 	      // Keep trying to make a random callback name until it finds a unique one.
 	      let randomCallback;
 	      do {
@@ -372,6 +372,9 @@ if (typeof module == 'object') __nodeModule__ = module;
 	      let node = document.createElement('script');
 	      node.id = randomCallback;
 	      node.src = url + '&callback=' + randomCallback;
+	      node.onerror = ev => {
+	        // can do something with an error here... but not going to.
+	      };
 
 	      try {
 	        document.getElementById('tapicJsonpContainer').appendChild(node);
@@ -1179,12 +1182,12 @@ if (typeof module == 'object') __nodeModule__ = module;
 	    _getJSON(
 	      url,
 	      function (res) {
-	        if (res.error) callback({
-	          isFollowing: false
-	        });
-	        else callback({
+	        if (res && res.created_at) callback({
 	          isFollowing: true,
 	          dateFollowed: (new Date(res.created_at).toLocaleString())
+	        });
+	        else callback({
+	          isFollowing: false
 	        });
 	      }
 	    );

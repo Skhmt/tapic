@@ -6,7 +6,7 @@ module.exports = function (TAPIC, state, _getJSON) {
   * @function isSubscribing
   */
   TAPIC.isSubscribing = function (user, callback) {
-    if ((typeof user != 'string' && typeof user != 'number') || typeof callback != 'function') {
+    if (typeof user != 'string' || typeof callback != 'function') {
       console.error('Invalid parameters. Usage: TAPIC.isSubscribing(user_id, callback);');
       return;
     }

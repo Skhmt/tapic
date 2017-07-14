@@ -6,7 +6,7 @@ module.exports = function (TAPIC, state, _ws, _getSubBadgeUrl, _pingAPI, _getJSO
   * @function joinChannel
   */
   TAPIC.joinChannel = function (channel, callback) {
-    if (typeof channel != 'string' && typeof channel != 'number') {
+    if (typeof channel != 'string') {
       return console.error('Invalid parameters. Usage: TAPIC.joinChannel(channel);');
     }
     if (!_ws) {
