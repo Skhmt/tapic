@@ -38,7 +38,7 @@ module.exports = function (TAPIC) {
   * @function emit
   */
   TAPIC.emit = function (eventName, eventDetail) {
-    if (typeof eventName != 'string' || typeof eventDetail != 'string') {
+    if (typeof eventName != 'string') {
       console.error('Invalid parameters. Usage: TAPIC.emit(eventName, eventDetail);');
       return;
     }

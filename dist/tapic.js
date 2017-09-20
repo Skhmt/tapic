@@ -3,7 +3,7 @@
 * Twitch API & Chat in javascript.
 * @author Skhmt
 * @license MIT
-* @version 5.0.1
+* @version 5.0.2
 *
 * @module TAPIC
 */
@@ -287,7 +287,7 @@ if (typeof module == 'object') __nodeModule__ = module;
 	  * @function emit
 	  */
 	  TAPIC.emit = function (eventName, eventDetail) {
-	    if (typeof eventName != 'string' || typeof eventDetail != 'string') {
+	    if (typeof eventName != 'string') {
 	      console.error('Invalid parameters. Usage: TAPIC.emit(eventName, eventDetail);');
 	      return;
 	    }
