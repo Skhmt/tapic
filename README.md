@@ -32,16 +32,6 @@ Navigate to the tapic directory
 
 ---
 
-### To Do (as of 5 March 2017)
-
-* Communities endpoint
-* Channel Feed endpoint
-* Option for message length limit check
-* Option for messages per 30 seconds limit check
-* (low priority) Transition whispers from irc/ws to pub/sub 
-
----
-
 ### Misc
 
 This was written entirely in Javascript and has no runtime dependencies besides "[ws](https://www.npmjs.com/package/ws)" when used in node.
