@@ -20,6 +20,7 @@ You will need to put in an oauth token in `index.html` for it to work.
 
 Alternatively, install via NPM: `npm install tapic --only=production` and include in your Node.js app via: `let TAPIC = require('tapic');`.
 
+Alternatively alternatively, include using the rawgit cdn: `<script src="https://cdn.rawgit.com/Skhmt/tapic/68a5e602/dist/tapic.min.js" integrity="sha384-tP/u941NluOMSS+4cQL8NCM9f0WZyXZ54BqeEVduqQyZGv2DZfXkZgIutpwpeMbO" crossorigin="anonymous"></script>`
 ---
 
 ### Building
