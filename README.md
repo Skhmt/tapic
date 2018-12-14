@@ -1,3 +1,9 @@
+*Twitch is removing v3 of their API at the end of 2018. This was built with v3 in mind, and I highly doubt v5 is compatible with this project.* I, unfortunately, have lost interest in developing for twitch, but the `New Twitch API` looks pretty good out of the box. So if this continues to work in 2019, great. If it doesn't, I won't be providing support any longer as it would require a full rewrite of `tapic.js`. Sorry guys, that's just how Twitch is doing things. This is licensed under MIT, so fork and upgrade it to your heart's content.
+
+
+
+
+
 # tapic.js
 A Twitch API and Chat library in javascript.
 
