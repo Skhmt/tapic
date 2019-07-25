@@ -1,4 +1,4 @@
-# On September 12 2019, Twitch is permanently shutting down v3 of their API, which this was written for. I don't have the time to re-implement this in v5, so if you still use this, make plans on switching now.
+# On September 12 2019, Twitch is permanently shutting down v3 of their API, which this was written for. I don't have the time to re-implement this in v5, so if you still use this, start migrating to a new framework (or use Twitch's API directly) now!
 
 
 
