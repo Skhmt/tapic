@@ -6,7 +6,7 @@
     "url": "https://github.com/skhmt/tapic.js/issues"
   },
   "dependencies": {
-    "ws": "^1.1.0"
+    "ws": "^7.2.0"
   },
   "description": "A simple Twitch API and Chat library.",
   "devDependencies": {
